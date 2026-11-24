@@ -9,6 +9,8 @@
 **영어**와 **독일어**)를 고르고, 주제를 골라 AI 대화 상대와 소리 내어 이야기하면, 상대가 음성으로
 답하고 내가 한 말을 바로바로 고쳐 줍니다.
 
+![SOS My Language에서 독일어로 나눈 대화: 내가 한 말, 한국어로 된 교정 설명, 상대의 다음 말](docs/images/conversation.ko.png)
+
 [SOS My Interview](https://github.com/gyedongjeon/sos-my-interview)와 같은 SOS 시리즈이고,
 언어 하나씩을 다루던 [SOS My English](https://github.com/gyedongjeon/sos-my-english)와
 [SOS My German](https://github.com/gyedongjeon/sos-my-german)을 하나로 합친 앱입니다.
@@ -79,6 +81,8 @@ Intel Mac, Linux용 설치 파일은 아직 없습니다. [소스에서 실행](
 Google Gemini, Claude, OpenAI, OpenRouter 등을 쓸 수 있습니다. API 키는 내 컴퓨터에만 저장되고, 저장한 뒤에는 화면에 다시 표시되지 않으며, 선택한 서비스로만 전송됩니다.
 
 ## 사용 방법
+![SOS My Language 홈 화면: 한국어로 된 주제 목록과 연습하는 언어](docs/images/home.ko.png)
+
 1. **대화**에서 카테고리를 누르고 주제를 고르면 상대가 첫마디를 읽어 줍니다. 못 들었다면 "다시 듣기", 글자로 보고 싶다면 "글자 보기"를 누릅니다.
 2. "말하기 시작"을 누르고 말한 뒤 "중지"를 누릅니다.
 3. 내가 한 말과 교정이 나오고, 상대가 이어서 말합니다. 같은 식으로 대화를 이어 갑니다.
