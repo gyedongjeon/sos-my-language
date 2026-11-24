@@ -39,5 +39,5 @@ German although Korean was the learner's language. Find out how often that happe
   places it is applied, with no second request when the first explanation is right.
 - Against the real model through the running server, with the check in place: 40 of 40
   corrections of the line that failed before were explained in Korean.
-- Not verified: the live test suite as a whole (`pytest -m live`) after the change; languages
-  other than Korean with the real model.
+- `uv run --env-file .env pytest -m live` after the change: 16 passed.
+- Not verified: languages other than Korean with the real model.
