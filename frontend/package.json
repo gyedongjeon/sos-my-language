@@ -1,0 +1,31 @@
+{
+  "name": "sos-my-language-frontend",
+  "private": true,
+  "license": "MIT",
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vue-tsc && vite build",
+    "typecheck": "vue-tsc",
+    "test": "vitest run",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@fontsource-variable/bricolage-grotesque": "^5.3.0",
+    "pinia": "^2.2.6",
+    "vue": "^3.5.13",
+    "vue-router": "^4.4.5"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.3.5",
+    "@vitejs/plugin-vue": "^5.2.1",
+    "@vue/tsconfig": "^0.9.1",
+    "daisyui": "^5.8.1",
+    "tailwindcss": "^4.3.5",
+    "typescript": "^6.0.3",
+    "vite": "^6.0.3",
+    "vitest": "^5.1.1",
+    "vue-tsc": "^3.3.14"
+  }
+}

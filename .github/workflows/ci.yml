@@ -1,0 +1,154 @@
+# Runs every test suite and build check on a pull request into main: when it is opened or
+# reopened, and again on every later push to it. A newer push cancels a run still in progress.
+# It can also be started by hand from the Actions tab ("Run workflow").
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize]
+  workflow_dispatch:
+  # Lets the release workflow run the same checks before it builds an installer.
+  workflow_call:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  backend:
+    name: Backend (pytest)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          cache-dependency-glob: backend/uv.lock
+      - name: Install dependencies
+        run: uv sync --frozen
+      - name: Run tests
+        run: uv run --frozen pytest
+
+  # A few requests to a real model. Separate from the backend job, so that a provider outage or
+  # a rate limit is not mistaken for a broken test. The key is not available to the release
+  # workflow or to pull requests from forks; there the tests skip themselves.
+  live:
+    name: Backend (live LLM)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    env:
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      LLM_MODEL: gemini/gemini-3.1-flash-lite
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          cache-dependency-glob: backend/uv.lock
+      - name: Install dependencies
+        run: uv sync --frozen
+      - name: Run the live tests
+        run: uv run --frozen pytest -m live -rs
+
+  frontend:
+    name: Frontend (vitest, type check, build)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - name: Run tests
+        run: npm test
+      - name: Type check and build
+        run: npm run build
+
+  desktop:
+    name: Desktop (vitest, type check)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: desktop
+    env:
+      # Only the TypeScript sources are checked; the Electron binary is not needed.
+      ELECTRON_SKIP_BINARY_DOWNLOAD: 1
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: desktop/package-lock.json
+      - run: npm ci
+      - name: Run tests
+        run: npm test
+      - name: Type check
+        run: npx tsc --noEmit
+
+  # The Windows installer cannot be tried by hand on the machines this project is developed on,
+  # so this job does what can be done without a screen: the backend's tests, the server started
+  # the way the installed app starts it, and the installer itself built.
+  windows:
+    name: Windows (backend, server start, installer)
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - name: Run the backend tests
+        working-directory: backend
+        run: |
+          uv sync --frozen
+          uv run --frozen pytest
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            frontend/package-lock.json
+            desktop/package-lock.json
+      - name: Fetch the uv and the Python that the installer ships
+        run: |
+          npm run uv --prefix desktop
+          npm run python --prefix desktop
+      - name: Start the server as the installed app does, on the shipped Python
+        run: |
+          export UV_PYTHON="$(cygpath -w "$PWD/desktop/vendor/python/python.exe")"
+          export UV_PYTHON_DOWNLOADS=never
+          "$UV_PYTHON" --version
+          .github/scripts/start-server-check.sh
+      - name: Build the installer
+        run: |
+          npm ci --prefix frontend
+          npm ci --prefix desktop
+          npm run dist --prefix desktop -- --publish never
+          ls -l desktop/release/*.exe
+          # What the installer holds: the backend, uv, and Python.
+          ls desktop/release/win-unpacked/resources/backend/pyproject.toml
+          ls desktop/release/win-unpacked/resources/uv/uv.exe
+          ls desktop/release/win-unpacked/resources/python/python.exe
+
+      # Kept for a few days so the installer can be tried on a real machine before a release.
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows-installer
+          path: desktop/release/*.exe
+          retention-days: 7
+          compression-level: 0
