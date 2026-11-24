@@ -10,6 +10,8 @@ Stuck for words? An app for practising **speaking a language you are learning**,
 own machine. Choose the language (**English** or **German** so far), pick a topic, talk it
 through out loud with an AI partner that answers by voice, and get what you said fixed as you go.
 
+![A conversation in SOS My Language: what you said, its correction, and your partner's next line](docs/images/conversation.png)
+
 Part of the SOS series, next to [SOS My Interview](https://github.com/gyedongjeon/sos-my-interview).
 It brings together [SOS My English](https://github.com/gyedongjeon/sos-my-english) and
 [SOS My German](https://github.com/gyedongjeon/sos-my-german), which each taught one language.
@@ -98,6 +100,8 @@ settings kept. You can also choose **SOS My Language → Check for Updates…**.
 The first thing the app asks is **which language you want to practise**. Nothing is downloaded
 before you choose. It then opens on the Settings page.
 
+![The first start of SOS My Language: choosing between English and German](docs/images/language.png)
+
 1. **Your language**: pick the language the pages are shown in and your corrections are explained
    in. It starts from your system language.
 2. **AI model and API key**: choose a provider and model and paste that provider's API key. It is
@@ -113,6 +117,8 @@ under Settings. The key is stored in the local database (`app.db`), is never sho
 UI, and is sent only to the chosen provider.
 
 ## How it works
+![The home page of SOS My Language, with the list of topics and the language being practised](docs/images/home.png)
+
 ### Languages
 The app teaches English and German. The language being practised decides what your partner
 speaks and corrects, which voice reads the lines, how your speech is recognized, which
