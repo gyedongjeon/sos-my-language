@@ -7,6 +7,7 @@ from pydantic import BaseModel, Field
 
 from .db import current_language
 from .llm import complete, format_conversation, parse_json_reply
+from .own_language import in_own_language
 from .settings import feedback_language
 
 SPEAKERS = {"tutor": "Tutor", "learner": "Learner"}
@@ -93,4 +94,6 @@ def tutor_reply(situation: str, messages: list[Message]) -> TutorReply:
     if fix and _spoken(fix.original) == _spoken(fix.improved):
         # Only punctuation or capitals changed, which the learner cannot say.
         result.correction = None
+    elif fix:
+        fix.explanation = in_own_language(fix.explanation, language)
     return result
