@@ -1,0 +1,96 @@
+{
+  "name": "sos-my-english",
+  "productName": "SOS My English",
+  "description": "English speaking practice that runs on your own machine.",
+  "private": true,
+  "license": "MIT",
+  "version": "0.8.1",
+  "main": "dist/main.js",
+  "scripts": {
+    "frontend": "npm --prefix ../frontend install && npm --prefix ../frontend run build",
+    "compile": "tsc",
+    "test": "vitest run",
+    "dev": "npm run frontend && npm run compile && node scripts/name-dev-app.mjs && electron .",
+    "uv": "node scripts/fetch-uv.mjs",
+    "package": "npm run uv && npm run python && npm run frontend && npm run compile && electron-builder --dir",
+    "dist": "npm run uv && npm run python && npm run frontend && npm run compile && electron-builder",
+    "python": "node scripts/fetch-python.mjs"
+  },
+  "build": {
+    "appId": "local.sos-my-english",
+    "publish": null,
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**"
+    ],
+    "extraResources": [
+      {
+        "from": "../backend",
+        "to": "backend",
+        "filter": [
+          "app/**/*.py",
+          "pyproject.toml",
+          "uv.lock",
+          ".python-version"
+        ]
+      },
+      {
+        "from": "../frontend/dist",
+        "to": "frontend"
+      },
+      {
+        "from": "vendor/uv",
+        "to": "uv",
+        "filter": [
+          "uv",
+          "uv.exe"
+        ]
+      }
+    ],
+    "mac": {
+      "target": [
+        "dmg",
+        "zip"
+      ],
+      "icon": "assets/icon.png",
+      "category": "public.app-category.education",
+      "identity": "-",
+      "hardenedRuntime": false,
+      "extendInfo": {
+        "NSMicrophoneUsageDescription": "The microphone records what you say so it can be transcribed and corrected."
+      }
+    },
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "assets/icon.png",
+      "extraResources": [
+        {
+          "from": "vendor/python",
+          "to": "python"
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false,
+      "deleteAppDataOnUninstall": false,
+      "artifactName": "SOS-My-English-Setup-${version}.${ext}"
+    }
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.6",
+    "electron": "^45.4.1",
+    "electron-builder": "^26.18.0",
+    "typescript": "^7.0.2",
+    "vitest": "^5.1.1"
+  }
+}

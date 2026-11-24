@@ -1,0 +1,103 @@
+# Builds the macOS and Windows installers and publishes a GitHub Release when a version tag is pushed.
+# See docs/git-workflow/versioning.md for when and how to tag.
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Test
+    uses: ./.github/workflows/ci.yml
+
+  release:
+    name: Build and publish the dmg
+    needs: test
+    # Apple Silicon runner: the installer is built for arm64.
+    runs-on: macos-latest
+    permissions:
+      contents: write
+    env:
+      TAG: ${{ github.ref_name }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check that the tag matches the version in every package
+        run: .github/scripts/check-version.sh "$TAG"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            frontend/package-lock.json
+            desktop/package-lock.json
+
+      - name: Install dependencies
+        run: |
+          npm ci --prefix frontend
+          npm ci --prefix desktop
+
+      - name: Build the installer
+        working-directory: desktop
+        # electron-builder must not publish by itself: `--publish never` here, `"publish": null`
+        # in package.json, and no GitHub token in this step's environment.
+        run: npm run dist -- --publish never
+
+      - name: Write the release notes
+        run: .github/scripts/release-notes.sh "$TAG" desktop/release/*.dmg > release-notes.md
+
+      - name: Publish the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # A re-run for the same tag replaces the installer instead of failing.
+          if gh release view "$TAG" > /dev/null 2>&1; then
+            gh release upload "$TAG" desktop/release/*.dmg desktop/release/*-mac.zip --clobber
+          else
+            # The dmg is for installing by hand; the zip is what the app downloads to update itself.
+            gh release create "$TAG" desktop/release/*.dmg desktop/release/*-mac.zip \
+              --verify-tag --title "$TAG" --notes-file release-notes.md --generate-notes
+          fi
+
+  windows:
+    name: Build and add the Windows installer
+    # After the release exists: the installer is added to it.
+    needs: release
+    runs-on: windows-latest
+    permissions:
+      contents: write
+    defaults:
+      run:
+        shell: bash
+    env:
+      TAG: ${{ github.ref_name }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            frontend/package-lock.json
+            desktop/package-lock.json
+
+      - name: Install dependencies
+        run: |
+          npm ci --prefix frontend
+          npm ci --prefix desktop
+
+      - name: Build the installer
+        working-directory: desktop
+        run: npm run dist -- --publish never
+
+      - name: Add the installer to the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload "$TAG" desktop/release/*.exe --clobber
+

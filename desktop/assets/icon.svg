@@ -1,0 +1,26 @@
+<!--
+  App icon: the life ring from the logo, with a speech-bubble tail, on a navy macOS-style tile.
+  The tail is what tells it apart from the other apps of the SOS series.
+  icon.png (1024x1024, transparent corners) is rendered from this file with scripts/render-icon.sh.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024" fill="none">
+  <defs>
+    <linearGradient id="sea" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1e3158"/>
+      <stop offset="1" stop-color="#0f1a31"/>
+    </linearGradient>
+    <linearGradient id="ring" gradientUnits="userSpaceOnUse" x1="0" y1="232" x2="0" y2="792">
+      <stop offset="0" stop-color="#ff6a2b"/>
+      <stop offset="1" stop-color="#ec4a12"/>
+    </linearGradient>
+  </defs>
+  <!-- macOS icon grid: an 824px tile centered in the 1024px canvas. -->
+  <rect x="100" y="100" width="824" height="824" rx="186" fill="url(#sea)"/>
+  <rect x="101.5" y="101.5" width="821" height="821" rx="184.5" stroke="#ffffff" stroke-opacity="0.08" stroke-width="3"/>
+  <!-- Soft shadow under the ring. -->
+  <circle cx="512" cy="530" r="205" stroke="#060b17" stroke-opacity="0.35" stroke-width="150"/>
+  <!-- Speech-bubble tail, growing out of the ring's lower-left orange segment. -->
+  <path d="M291 629 L395 733 L236 792 Z" fill="url(#ring)" stroke="url(#ring)" stroke-width="24" stroke-linejoin="round"/>
+  <circle cx="512" cy="512" r="205" stroke="url(#ring)" stroke-width="150"/>
+  <circle cx="512" cy="512" r="205" stroke="#fbf8f3" stroke-width="150" stroke-dasharray="161.007 161.007" stroke-dashoffset="80.503"/>
+</svg>
