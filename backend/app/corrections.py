@@ -4,27 +4,9 @@ from fastapi import APIRouter, HTTPException, Response
 from pydantic import BaseModel, Field
 
 from .conversation import _spoken
-from .db import get_connection
+from .db import current_language, get_connection
 
 router = APIRouter(prefix="/api")
-
-# Short forms that are spelled differently from their words, and the ones that follow no rule.
-IRREGULAR = {"won't": "will not", "can't": "can not", "cannot": "can not", "shan't": "shall not", "let's": "let us"}
-ENDINGS = {"n't": " not", "'m": " am", "'re": " are", "'ve": " have", "'ll": " will"}
-# After these words "'s" is "is" and "'d" is "would" far more often than anything else; after any
-# other word "'s" is left alone, because it usually marks an owner ("my friend's car").
-PRONOUNS = {"i", "you", "he", "she", "it", "we", "they", "that", "there", "here", "what", "who", "where", "how"}
-
-
-# Speech recognition writes small numbers as figures or as words; both are heard the same.
-NUMBERS = dict(
-    zip(
-        "zero one two three four five six seven eight nine ten eleven twelve thirteen fourteen fifteen "
-        "sixteen seventeen eighteen nineteen twenty thirty forty fifty sixty seventy eighty ninety".split(),
-        [*map(str, range(21)), "30", "40", "50", "60", "70", "80", "90"],
-        strict=True,
-    )
-)
 
 
 class SavedCorrection(BaseModel):
@@ -42,7 +24,7 @@ class SavedCorrection(BaseModel):
     # For a shadowing mistake: where the sentence stands in its video.
     position: int | None = None
     title: str
-    # For a pattern mistake: the sentence that was to be said in English.
+    # For a pattern mistake: the sentence that was to be said in the language practised.
     prompt: str | None = None
     original: str
     improved: str
@@ -64,21 +46,12 @@ class Attempt(BaseModel):
 
 
 def _words(text: str) -> list[str]:
-    """The words of a sentence as heard: short forms spelled out, so "I'm" equals "I am", and
-    small numbers as figures, so "three" equals "3"."""
+    """The words of a sentence as heard in the language being practised: short forms spelled
+    out, so "I'm" equals "I am" in English, and small numbers as figures, so "three" equals "3"."""
+    language = current_language()
     words: list[str] = []
     for word in _spoken(text):
-        stem, apostrophe, ending = word.rpartition("'")
-        if word in IRREGULAR:
-            word = IRREGULAR[word]
-        elif apostrophe and stem in PRONOUNS and ending in ("s", "d"):
-            word = f"{stem} {'is' if ending == 's' else 'would'}"
-        else:
-            for short, full in ENDINGS.items():
-                if word.endswith(short) and len(word) > len(short):
-                    word = word.removesuffix(short) + full
-                    break
-        words.extend(NUMBERS.get(part, part) for part in word.split())
+        words.extend(language.numbers.get(part, part) for part in language.spell_out(word).split())
     return words
 
 
@@ -119,7 +92,8 @@ def _locate(correction_id: str) -> tuple[str, str, int]:
 @router.get("/corrections", response_model=list[SavedCorrection])
 def list_corrections() -> list[SavedCorrection]:
     """Every correction of the saved conversations, every sentence got wrong in pattern practice,
-    and every sentence of a video not said right after it, newest first."""
+    and every sentence of a video not said right after it, in the language being practised,
+    newest first."""
     with get_connection() as conn:
         rows = conn.execute(
             """
@@ -129,17 +103,19 @@ def list_corrections() -> list[SavedCorrection]:
                    m.correction_explanation AS explanation, m.practiced, m.practiced_at,
                    COALESCE(m.corrected_at, c.started_at) AS made_at, m.id AS row
             FROM messages m JOIN conversations c ON c.id = m.conversation_id
-            WHERE m.correction_improved IS NOT NULL AND m.dismissed = 0
+            WHERE m.correction_improved IS NOT NULL AND m.dismissed = 0 AND c.target = :target
             UNION ALL
             SELECT 'p' || id, NULL, pattern_id, NULL, NULL, pattern, prompt, said, improved, explanation,
                    practiced, practiced_at, created_at, id
-            FROM pattern_mistakes
+            FROM pattern_mistakes WHERE target = :target
             UNION ALL
             SELECT 's' || s.id, NULL, NULL, l.video, l.position, s.title, NULL, s.said, s.improved,
                    s.explanation, s.practiced, s.practiced_at, s.created_at, s.id
             FROM shadowing_mistakes s LEFT JOIN video_lines l ON l.id = s.line
+            WHERE s.target = :target
             ORDER BY made_at DESC, row DESC
-            """
+            """,
+            {"target": current_language().code},
         ).fetchall()
     return [SavedCorrection(**{key: row[key] for key in row.keys() if key not in ("made_at", "row")}) for row in rows]
 
@@ -188,12 +164,12 @@ def keep_mistake(pattern_id: str, pattern: str, prompt: str, said: str, improved
     with get_connection() as conn:
         conn.execute(
             """
-            INSERT INTO pattern_mistakes (pattern_id, pattern, prompt, said, improved, explanation)
-            VALUES (?, ?, ?, ?, ?, ?)
-            ON CONFLICT (pattern_id, prompt) DO UPDATE SET
+            INSERT INTO pattern_mistakes (target, pattern_id, pattern, prompt, said, improved, explanation)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT (target, pattern_id, prompt) DO UPDATE SET
                 pattern = excluded.pattern, said = excluded.said, improved = excluded.improved,
                 explanation = excluded.explanation, practiced = 0, practiced_at = NULL,
                 created_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
             """,
-            (pattern_id, pattern, prompt, said, improved, explanation),
+            (current_language().code, pattern_id, pattern, prompt, said, improved, explanation),
         )

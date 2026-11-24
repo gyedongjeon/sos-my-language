@@ -7,7 +7,7 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
 from . import videos
-from .db import get_connection
+from .db import current_language, get_connection
 from .llm import LLMError, complete, parse_json_reply
 from .settings import feedback_language
 
@@ -42,8 +42,8 @@ class VideoTranslation(BaseModel):
 
 
 PROMPT = """\
-You translate the English subtitles of a video into {language} for a learner of English, who
-reads them next to the English to understand what is said. You get the video's title and its
+You translate the {target} subtitles of a video into {language} for a learner of {target}, who
+reads them next to the {target} to understand what is said. You get the video's title and its
 sentences in order, each after its number in square brackets. The sentences come from
 subtitles, so a sentence may be cut short or run on into the next; translate each as it stands,
 using the ones around it to get the meaning right.
@@ -55,11 +55,11 @@ Reply with a single JSON object matching this schema, and nothing else:
 {schema}"""
 
 
-def _translate(language: str, title: str, part: list[videos.SavedLine]) -> dict[int, str]:
+def _translate(target: str, language: str, title: str, part: list[videos.SavedLine]) -> dict[int, str]:
     """Translations of some sentences by their line id; a sentence the model left out is missing."""
     sentences = "\n".join(f"[{line.id}] {line.text}" for line in part)
     reply = complete(
-        PROMPT.format(language=language, schema=Translations.model_json_schema()),
+        PROMPT.format(target=target, language=language, schema=Translations.model_json_schema()),
         f"Title: {title}\n\n{sentences}",
         max_tokens=8000,
         response_format={"type": "json_object"},
@@ -84,8 +84,12 @@ def translate(video: int) -> VideoTranslation:
     are taken as they were kept; the others are sent to the model."""
     found = videos.get_video(video)
     language = feedback_language()
-    if language.strip().lower() == "english":
-        raise HTTPException(status_code=422, detail="The feedback language is English, so there is nothing to translate into.")
+    # Asked for here: the parts are translated on other threads.
+    target = current_language()
+    if target.is_named(language):
+        raise HTTPException(
+            status_code=422, detail=f"The feedback language is {target.name}, so there is nothing to translate into."
+        )
     with get_connection() as conn:
         rows = conn.execute(
             """
@@ -100,7 +104,7 @@ def translate(video: int) -> VideoTranslation:
     def run(part: list[videos.SavedLine]) -> dict[int, str]:
         nonlocal error
         try:
-            written = _translate(language, found.title, part)
+            written = _translate(target.name, language, found.title, part)
         except LLMError as e:
             error = e
             return {}

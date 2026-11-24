@@ -7,7 +7,8 @@ import pytest
 
 from app import patterns
 from app.llm import LLMError
-from app.patterns import LEVELS, PATTERNS
+from app.languages import LEVELS
+from app.languages.english import ENGLISH
 
 EXERCISES = {
     "note": "과거의 일을 후회할 때 씁니다.",
@@ -35,22 +36,22 @@ def model(monkeypatch):
 
 def test_every_pattern_is_complete_and_has_a_level():
     assert LEVELS == ["A1", "A2", "B1", "B2", "C1", "C2"]
-    for pattern in PATTERNS:
+    for pattern in ENGLISH.patterns:
         assert pattern.level in LEVELS, pattern.id
         assert pattern.pattern and pattern.use and pattern.example, pattern.id
-    assert len({pattern.id for pattern in PATTERNS}) == len(PATTERNS)
-    assert len({pattern.pattern for pattern in PATTERNS}) == len(PATTERNS)
+    assert len({pattern.id for pattern in ENGLISH.patterns}) == len(ENGLISH.patterns)
+    assert len({pattern.pattern for pattern in ENGLISH.patterns}) == len(ENGLISH.patterns)
 
 
 def test_every_level_has_patterns():
-    sizes = Counter(pattern.level for pattern in PATTERNS)
+    sizes = Counter(pattern.level for pattern in ENGLISH.patterns)
     assert set(sizes) == set(LEVELS)
     assert all(size >= 6 for size in sizes.values()), sizes
 
 
 def test_patterns_are_listed_level_by_level_and_start_unpractised(client):
     listed = client.get("/api/patterns").json()
-    assert len(listed) == len(PATTERNS)
+    assert len(listed) == len(ENGLISH.patterns)
     levels = [pattern["level"] for pattern in listed]
     assert levels == sorted(levels, key=LEVELS.index)
     first = listed[0]

@@ -1,12 +1,11 @@
 """Corrections from saved conversations can be practised by saying the better sentence aloud."""
 
 import json
-import sqlite3
 
 import pytest
 
 from app import conversation
-from app.db import DB_PATH, SEED_TOPICS, get_connection, init_db
+from app.db import SEED_TOPICS, get_connection
 
 BEACH = {"original": "I go to the beach", "improved": "I went to the beach.", "explanation": "Past tense."}
 EXCITED = {"original": "I am exciting", "improved": "I'm excited.", "explanation": "Use -ed for a feeling."}
@@ -99,13 +98,3 @@ def test_deleting_a_conversation_removes_its_corrections(client, tutor):
     conversation_id = held(client, tutor, BEACH)
     client.delete(f"/api/conversations/{conversation_id}")
     assert client.get("/api/corrections").json() == []
-
-
-def test_a_database_from_before_practice_gains_the_columns(client):
-    with get_connection() as conn:
-        conn.execute("ALTER TABLE messages DROP COLUMN practiced")
-        conn.execute("ALTER TABLE messages DROP COLUMN practiced_at")
-    init_db()
-    with get_connection() as conn:
-        columns = [column[1] for column in conn.execute("PRAGMA table_info(messages)")]
-    assert "practiced" in columns and "practiced_at" in columns

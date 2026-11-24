@@ -9,7 +9,8 @@ class Download:
 
     `is_ready` says whether the model is complete on disk, `fetch` downloads it (blocking), and
     `measure` returns the bytes on disk so far, partial files included. `total` is the expected
-    size in bytes when it is known; `fetch` may set it once it finds out.
+    size in bytes when it is known; `fetch` may set it once it finds out. `size`, when given,
+    is asked for the expected size instead, for a model that can change (a chosen voice).
     """
 
     def __init__(
@@ -20,16 +21,26 @@ class Download:
         fetch: Callable[[], None],
         measure: Callable[[], int],
         total: int | None = None,
+        size: Callable[[], int | None] | None = None,
     ):
         self.id = id
         self.label = label
-        self.total = total
+        self._total = total
+        self._size = size
         self.error: str | None = None
         self._is_ready = is_ready
         self._fetch = fetch
         self._measure = measure
         self._thread: threading.Thread | None = None
         self._lock = threading.Lock()
+
+    @property
+    def total(self) -> int | None:
+        return self._size() if self._size else self._total
+
+    @total.setter
+    def total(self, value: int | None) -> None:
+        self._total = value
 
     def _downloading(self) -> bool:
         return bool(self._thread and self._thread.is_alive())

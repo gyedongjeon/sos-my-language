@@ -32,7 +32,7 @@ async def lifespan(_: FastAPI):
     yield
 
 
-app = FastAPI(title="sos-my-english", lifespan=lifespan)
+app = FastAPI(title="sos-my-language", lifespan=lifespan)
 app.include_router(corrections_router)
 app.include_router(history_router)
 app.include_router(models_router)

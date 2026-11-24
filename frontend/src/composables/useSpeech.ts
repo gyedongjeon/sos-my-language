@@ -1,8 +1,10 @@
 import { ref } from 'vue'
+import { useSettingsStore } from '../stores/settings'
 
-// Reads text aloud with the backend's local Kokoro voice, falling back to the browser's
-// built-in voice (Web Speech API) when the backend cannot produce audio.
-export function useSpeech(lang = 'en-US') {
+// Reads text aloud with the backend's local voice of the language being practised, falling back
+// to the browser's built-in voice (Web Speech API) when the backend cannot produce audio.
+export function useSpeech() {
+  const settings = useSettingsStore()
   const browserVoice = 'speechSynthesis' in window
   const speaking = ref(false)
   let audio: HTMLAudioElement | null = null
@@ -30,7 +32,7 @@ export function useSpeech(lang = 'en-US') {
       return
     }
     const utter = new SpeechSynthesisUtterance(text)
-    utter.lang = lang
+    utter.lang = settings.learning?.locale ?? 'en-US'
     utter.rate = 0.95
     utter.onend = utter.onerror = () => (speaking.value = false)
     window.speechSynthesis.speak(utter)

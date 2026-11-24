@@ -1,12 +1,11 @@
 """The learner can add topics of their own next to the built-in ones."""
 
 import json
-import sqlite3
 
 import pytest
 
 from app import conversation, topics
-from app.db import DB_PATH, SEED_TOPICS, get_connection, init_db
+from app.db import SEED_TOPICS, init_db
 from app.llm import LLMError
 
 OWN = {
@@ -117,12 +116,3 @@ def test_starting_the_app_again_leaves_an_own_topic_as_it_is(client):
     added = add(client)
     init_db()
     assert client.get("/api/topics").json()[-1] == added
-
-
-def test_a_database_from_before_own_topics_gains_the_column(client):
-    with get_connection() as conn:
-        conn.execute("ALTER TABLE topics DROP COLUMN custom")
-    init_db()
-    with get_connection() as conn:
-        assert "custom" in [column[1] for column in conn.execute("PRAGMA table_info(topics)")]
-    assert all(topic["custom"] is False for topic in client.get("/api/topics").json())

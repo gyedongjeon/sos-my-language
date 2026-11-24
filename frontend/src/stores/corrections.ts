@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import type { RouteLocationRaw } from 'vue-router'
 import { api } from '../api'
+import { t } from '../i18n'
 import type { SavedCorrection } from '../types'
 
 /** How the last try at saying a correction's better sentence went. */
@@ -69,7 +70,7 @@ export const useCorrectionsStore = defineStore('corrections', {
         const form = new FormData()
         form.append('file', audio, 'speech.webm')
         const { text } = await api<{ text: string }>('/transcribe', { method: 'POST', body: form })
-        if (!text) this.error = 'No speech was recognized. Try saying it again.'
+        if (!text) this.error = t('common.noSpeech')
         else await this.check(id, text, text)
       } catch (e) {
         this.error = (e as Error).message

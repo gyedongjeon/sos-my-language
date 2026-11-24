@@ -6,7 +6,7 @@ import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { bundlePath, download, findUpdate, isNewer, replaceBlocker, SWAP_SCRIPT } from '../src/update'
 
-const DOWNLOADS = 'https://github.com/gyedongjeon/sos-my-english/releases/download'
+const DOWNLOADS = 'https://github.com/gyedongjeon/sos-my-language/releases/download'
 const SHA = 'a'.repeat(64)
 
 // The parts of GitHub's "latest release" reply that the updater reads.
@@ -14,10 +14,10 @@ const release = (overrides: Record<string, unknown> = {}, assets?: Record<string
   tag_name: 'v0.3.0',
   draft: false,
   prerelease: false,
-  html_url: 'https://github.com/gyedongjeon/sos-my-english/releases/tag/v0.3.0',
+  html_url: 'https://github.com/gyedongjeon/sos-my-language/releases/tag/v0.3.0',
   assets: assets ?? [
-    { name: 'SOS.My.English-0.3.0-arm64.dmg', state: 'uploaded', size: 1, digest: `sha256:${'b'.repeat(64)}`, browser_download_url: `${DOWNLOADS}/v0.3.0/SOS.My.English-0.3.0-arm64.dmg` },
-    { name: 'SOS.My.English-0.3.0-arm64-mac.zip', state: 'uploaded', size: 1234, digest: `sha256:${SHA}`, browser_download_url: `${DOWNLOADS}/v0.3.0/SOS.My.English-0.3.0-arm64-mac.zip` },
+    { name: 'SOS.My.Language-0.3.0-arm64.dmg', state: 'uploaded', size: 1, digest: `sha256:${'b'.repeat(64)}`, browser_download_url: `${DOWNLOADS}/v0.3.0/SOS.My.Language-0.3.0-arm64.dmg` },
+    { name: 'SOS.My.Language-0.3.0-arm64-mac.zip', state: 'uploaded', size: 1234, digest: `sha256:${SHA}`, browser_download_url: `${DOWNLOADS}/v0.3.0/SOS.My.Language-0.3.0-arm64-mac.zip` },
   ],
   ...overrides,
 })
@@ -42,8 +42,8 @@ describe('findUpdate', () => {
   it('offers a newer release with the installable archive for this machine', () => {
     expect(findUpdate(release(), '0.2.1', 'arm64')).toEqual({
       version: '0.3.0',
-      notesUrl: 'https://github.com/gyedongjeon/sos-my-english/releases/tag/v0.3.0',
-      archive: { url: `${DOWNLOADS}/v0.3.0/SOS.My.English-0.3.0-arm64-mac.zip`, sha256: SHA, size: 1234 },
+      notesUrl: 'https://github.com/gyedongjeon/sos-my-language/releases/tag/v0.3.0',
+      archive: { url: `${DOWNLOADS}/v0.3.0/SOS.My.Language-0.3.0-arm64-mac.zip`, sha256: SHA, size: 1234 },
     })
   })
 
@@ -73,7 +73,7 @@ describe('findUpdate', () => {
 
   it('never offers a download from outside the project releases', () => {
     const [dmg, zip] = release().assets
-    const elsewhere = { ...zip, browser_download_url: 'https://example.com/SOS.My.English-0.3.0-arm64-mac.zip' }
+    const elsewhere = { ...zip, browser_download_url: 'https://example.com/SOS.My.Language-0.3.0-arm64-mac.zip' }
     expect(findUpdate(release({}, [dmg, elsewhere]), '0.2.1', 'arm64')?.archive).toBeNull()
     const lookalike = { ...zip, browser_download_url: `${DOWNLOADS}.evil.example/v0.3.0/x-arm64-mac.zip` }
     expect(findUpdate(release({}, [dmg, lookalike]), '0.2.1', 'arm64')?.archive).toBeNull()
@@ -81,14 +81,14 @@ describe('findUpdate', () => {
 
   it('links only to the project release page', () => {
     expect(findUpdate(release({ html_url: 'https://example.com/phish' }), '0.2.1', 'arm64')?.notesUrl).toBe(
-      'https://github.com/gyedongjeon/sos-my-english/releases/latest',
+      'https://github.com/gyedongjeon/sos-my-language/releases/latest',
     )
   })
 })
 
 describe('bundlePath', () => {
   it('is the .app folder that contains the running program', () => {
-    expect(bundlePath('/Applications/SOS My English.app/Contents/MacOS/SOS My English')).toBe('/Applications/SOS My English.app')
+    expect(bundlePath('/Applications/SOS My Language.app/Contents/MacOS/SOS My Language')).toBe('/Applications/SOS My Language.app')
   })
 
   it('is null when the program is not inside an app bundle', () => {
@@ -97,7 +97,7 @@ describe('bundlePath', () => {
 })
 
 describe('replaceBlocker', () => {
-  const installed = { packaged: true, platform: 'darwin' as NodeJS.Platform, bundle: '/Applications/SOS My English.app', writable: () => true }
+  const installed = { packaged: true, platform: 'darwin' as NodeJS.Platform, bundle: '/Applications/SOS My Language.app', writable: () => true }
 
   it('allows replacing an installed app', () => {
     expect(replaceBlocker(installed)).toBeNull()
@@ -108,8 +108,8 @@ describe('replaceBlocker', () => {
     expect(replaceBlocker({ ...installed, platform: 'win32' })).toMatch(/installer/)
     expect(replaceBlocker({ ...installed, bundle: null })).toMatch(/app bundle/)
     // macOS runs a quarantined app that was never moved from a random read-only location.
-    expect(replaceBlocker({ ...installed, bundle: '/private/var/folders/x/AppTranslocation/1234/d/SOS My English.app' })).toMatch(/Applications/)
-    expect(replaceBlocker({ ...installed, bundle: '/Volumes/SOS My English 0.2.1-arm64/SOS My English.app' })).toMatch(/Applications/)
+    expect(replaceBlocker({ ...installed, bundle: '/private/var/folders/x/AppTranslocation/1234/d/SOS My Language.app' })).toMatch(/Applications/)
+    expect(replaceBlocker({ ...installed, bundle: '/Volumes/SOS My Language 0.2.1-arm64/SOS My Language.app' })).toMatch(/Applications/)
     expect(replaceBlocker({ ...installed, writable: () => false })).toMatch(/permission/)
   })
 })

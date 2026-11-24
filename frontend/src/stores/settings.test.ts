@@ -56,14 +56,15 @@ describe('feedback language', () => {
     await store.load()
     await store.setFeedbackLanguage('French')
     expect(store.feedbackLanguage).toBe('Korean')
-    expect(store.error).toBe('Could not save the language: disk full')
+    // Said in the learner's language, which is Korean here.
+    expect(store.error).toBe('언어를 저장하지 못했습니다: disk full')
   })
 })
 
 describe('partner voice', () => {
   const VOICES = [
-    { id: 'af_heart', label: 'Heart · American · female', chosen: true },
-    { id: 'bm_george', label: 'George · British · male', chosen: false },
+    { id: 'af_heart', label: 'Heart · American · female', size: 353746785, downloaded: true, chosen: true },
+    { id: 'bm_george', label: 'George · British · male', size: 353746785, downloaded: true, chosen: false },
   ]
 
   function voiceBackend(fail = false) {
@@ -105,5 +106,88 @@ describe('partner voice', () => {
     expect(await store.setVoice('bm_george')).toBe(false)
     expect(store.voice).toBe('af_heart')
     expect(store.error).toContain('Could not change the voice')
+  })
+})
+
+describe('language to practise', () => {
+  const LANGUAGES = [
+    { code: 'en', name: 'English', native: 'English', locale: 'en-US', sample: 'Hi!', chosen: false },
+    { code: 'de', name: 'German', native: 'Deutsch', locale: 'de-DE', sample: 'Hallo!', chosen: false },
+  ]
+  const GERMAN_VOICES = [{ id: 'de_DE-thorsten-high', label: 'Thorsten', size: 113900076, downloaded: false, chosen: true }]
+
+  // Remembers the chosen language like the real `/api/languages` and `/api/language`.
+  function languageBackend(chosen: string | null, fail = false) {
+    const state = { chosen, asked: [] as string[] }
+    vi.stubGlobal('fetch', async (url: string, init?: RequestInit) => {
+      state.asked.push(`${init?.method ?? 'GET'} ${url}`)
+      if (url === '/api/language') {
+        if (fail) return new Response(JSON.stringify({ detail: 'Unknown language: tlh' }), { status: 422 })
+        state.chosen = JSON.parse(init?.body as string).language
+      }
+      if (url.startsWith('/api/language')) {
+        return new Response(JSON.stringify(LANGUAGES.map((l) => ({ ...l, chosen: l.code === state.chosen }))), { status: 200 })
+      }
+      if (url === '/api/voices') return new Response(JSON.stringify(GERMAN_VOICES), { status: 200 })
+      return new Response(JSON.stringify([]), { status: 200 })
+    })
+    return state
+  }
+
+  it('has none chosen on the first start', async () => {
+    languageBackend(null)
+    const store = useSettingsStore()
+    expect(store.languages).toBeNull()
+    await store.loadLanguages()
+    expect(store.languages?.map((l) => l.code)).toEqual(['en', 'de'])
+    expect(store.learning).toBeNull()
+    expect(store.learningName).toBe('the language')
+  })
+
+  it('knows the one chosen before', async () => {
+    languageBackend('de')
+    const store = useSettingsStore()
+    await store.loadLanguages()
+    expect(store.learning?.code).toBe('de')
+    expect(store.learningName).toBe('German')
+  })
+
+  it('chooses a language and starts downloading its speech models', async () => {
+    const backend = languageBackend(null)
+    const store = useSettingsStore()
+    await store.loadLanguages()
+    expect(await store.chooseLanguage('de')).toBe(true)
+    expect(store.learning?.native).toBe('Deutsch')
+    await vi.waitFor(() => expect(backend.asked).toContain('POST /api/models/download'))
+  })
+
+  it('lists the voices of the new language when the voices were shown', async () => {
+    languageBackend('en')
+    const store = useSettingsStore()
+    await store.loadLanguages()
+    store.voices = [{ id: 'af_heart', label: 'Heart', size: 1, downloaded: true, chosen: true }]
+    await store.chooseLanguage('de')
+    expect(store.voice).toBe('de_DE-thorsten-high')
+  })
+
+  it('goes over to the language of what was opened, unless it is practised already', async () => {
+    const backend = languageBackend('en')
+    const store = useSettingsStore()
+    await store.loadLanguages()
+    expect(await store.practise('en')).toBe(true)
+    expect(backend.asked).not.toContain('PUT /api/language')
+    expect(await store.practise('de')).toBe(true)
+    expect(backend.asked).toContain('PUT /api/language')
+    expect(store.learning?.code).toBe('de')
+  })
+
+  it('keeps the language and says why when choosing fails', async () => {
+    languageBackend('en')
+    const store = useSettingsStore()
+    await store.loadLanguages()
+    languageBackend('en', true)
+    expect(await store.chooseLanguage('tlh')).toBe(false)
+    expect(store.learning?.code).toBe('en')
+    expect(store.error).toBe('Could not change the language: Unknown language: tlh')
   })
 })

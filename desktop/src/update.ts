@@ -11,7 +11,7 @@ import { promisify } from 'node:util'
 
 const run = promisify(execFile)
 
-const REPOSITORY = 'gyedongjeon/sos-my-english'
+const REPOSITORY = 'gyedongjeon/sos-my-language'
 export const LATEST_RELEASE_API = `https://api.github.com/repos/${REPOSITORY}/releases/latest`
 export const RELEASES_PAGE = `https://github.com/${REPOSITORY}/releases/latest`
 // Downloads and links are accepted only from this project's releases.

@@ -6,9 +6,11 @@ import pytest
 
 from app import conversation
 from app.db import SEED_TOPICS, get_connection
+from app.languages.english import ENGLISH
 from app.llm import LLMError
 
-TITLE, SITUATION, OPENER = SEED_TOPICS[0][:3]
+TITLE, SITUATION = SEED_TOPICS[0][:2]
+OPENER = ENGLISH.openers[TITLE]
 CORRECTION = {"original": "I go", "improved": "I went", "explanation": "Past tense."}
 DELIVERY = {"clarity": 82, "unclear_words": ["beach"], "words_per_minute": 110}
 

@@ -3,7 +3,6 @@
 import pytest
 
 from app import videos
-from app.db import get_connection, init_db
 from app.videos import Snippet
 
 SPEECH = [
@@ -101,14 +100,6 @@ def test_the_search_ignores_capitals_and_takes_signs_as_they_are(client, saved):
 def test_a_search_needs_something_to_look_for(client, saved):
     assert client.get("/api/video-lines", params={"q": " "}).status_code == 422
     assert client.get("/api/video-lines", params={"q": "zebra"}).json() == []
-
-
-def test_a_database_from_before_shadowing_gains_the_columns(client, saved):
-    with get_connection() as conn:
-        conn.execute("ALTER TABLE video_lines DROP COLUMN shadowed")
-        conn.execute("ALTER TABLE video_lines DROP COLUMN best")
-    init_db()
-    assert client.get(f"/api/videos/{saved[0]['id']}").json()["lines"][0]["shadowed"] == 0
 
 
 def test_a_number_counts_whether_it_was_heard_as_a_word_or_as_a_figure(client, saved):

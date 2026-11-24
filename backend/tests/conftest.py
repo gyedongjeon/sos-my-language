@@ -6,9 +6,9 @@ import tempfile
 from pathlib import Path
 
 # The app reads these when it is imported, so they are set before any `app` import.
-_ROOT = Path(tempfile.mkdtemp(prefix="sos-my-english-tests-"))
-os.environ["SOS_MY_ENGLISH_DATA_DIR"] = str(_ROOT / "data")
-os.environ["SOS_MY_ENGLISH_FRONTEND_DIST"] = str(_ROOT / "dist")
+_ROOT = Path(tempfile.mkdtemp(prefix="sos-my-language-tests-"))
+os.environ["SOS_MY_LANGUAGE_DATA_DIR"] = str(_ROOT / "data")
+os.environ["SOS_MY_LANGUAGE_FRONTEND_DIST"] = str(_ROOT / "dist")
 # LiteLLM loads a `.env` file from the working folder when it is imported, unless it is told it
 # runs in production. Tests must not depend on what a developer keeps in `backend/.env`.
 os.environ["LITELLM_MODE"] = "PRODUCTION"
@@ -22,7 +22,7 @@ import pytest  # noqa: E402
 from fastapi.testclient import TestClient  # noqa: E402
 
 from app import similar_videos, speech, topics, transcribe, videos  # noqa: E402
-from app.db import init_db  # noqa: E402
+from app.db import choose_language, init_db  # noqa: E402
 from app.main import app  # noqa: E402
 from app.paths import DATA_DIR, FRONTEND_DIST  # noqa: E402
 
@@ -42,13 +42,15 @@ KEY_VARIABLES = {
 
 @pytest.fixture(autouse=True)
 def isolated(monkeypatch, request):
-    """A fresh database and data folder, with the LLM and downloads blocked unless mocked."""
+    """A fresh database and data folder, with English chosen as the language to practise, and
+    with the LLM and downloads blocked unless mocked."""
     # Not ignoring errors: a file that cannot be removed (on Windows, one that is still open)
     # would quietly carry one test's data into the next.
     if DATA_DIR.exists():
         shutil.rmtree(DATA_DIR)
     shutil.rmtree(FRONTEND_DIST, ignore_errors=True)
     init_db()
+    choose_language("en")
     if request.node.get_closest_marker("live"):
         # The one kind of test that is allowed to reach a real model.
         variable = KEY_VARIABLES.get(LIVE_MODEL.split("/")[0])
@@ -59,6 +61,7 @@ def isolated(monkeypatch, request):
         monkeypatch.setattr(litellm, "completion", _no_network)
     monkeypatch.setattr(speech.urllib.request, "urlopen", _no_network)
     monkeypatch.setattr(speech, "_kokoro", None)
+    monkeypatch.setattr(speech, "_piper", {})
     monkeypatch.setattr(transcribe, "_download", _no_network)
     monkeypatch.setattr(topics.trafilatura, "fetch_url", _no_network)
     monkeypatch.setattr(videos, "_transcript", _no_network)
@@ -67,6 +70,12 @@ def isolated(monkeypatch, request):
     for download in (speech.model_download, transcribe.model_download):
         monkeypatch.setattr(download, "_thread", None)
         monkeypatch.setattr(download, "error", None)
+
+
+@pytest.fixture
+def german():
+    """German is the language being practised."""
+    choose_language("de")
 
 
 @pytest.fixture

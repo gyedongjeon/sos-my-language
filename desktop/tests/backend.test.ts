@@ -4,7 +4,7 @@ import { backendLaunch, microphoneSettings, startupProgress, stopCommand } from 
 const options = {
   project: '/App/Resources/backend',
   frontend: '/App/Resources/frontend',
-  userData: '/Users/me/Library/Application Support/SOS My English' as string | null,
+  userData: '/Users/me/Library/Application Support/SOS My Language' as string | null,
   port: 51234,
   env: { PATH: '/usr/bin', HOME: '/Users/me' },
 }
@@ -19,28 +19,28 @@ describe('backendLaunch', () => {
   it('keeps the caller environment and tells the backend where the built frontend is', () => {
     const { env } = backendLaunch(options)
     expect(env.PATH).toBe('/usr/bin')
-    expect(env.SOS_MY_ENGLISH_FRONTEND_DIST).toBe('/App/Resources/frontend')
+    expect(env.SOS_MY_LANGUAGE_FRONTEND_DIST).toBe('/App/Resources/frontend')
   })
 
   it('keeps compiled Python in the packaged app\'s folder, so later launches need not compile it again', () => {
     const { env } = backendLaunch(options)
-    expect(env.PYTHONPYCACHEPREFIX).toBe('/Users/me/Library/Application Support/SOS My English/pycache')
+    expect(env.PYTHONPYCACHEPREFIX).toBe('/Users/me/Library/Application Support/SOS My Language/pycache')
     // Compiled files are still written, but not into the app bundle, which must stay unchanged.
     expect(env.PYTHONDONTWRITEBYTECODE).toBeUndefined()
   })
 
   it('keeps the packaged app\'s data and Python packages in its own folder, without the test tools', () => {
     const { args, env } = backendLaunch(options)
-    expect(env.SOS_MY_ENGLISH_DATA_DIR).toBe('/Users/me/Library/Application Support/SOS My English/data')
-    expect(env.UV_PROJECT_ENVIRONMENT).toBe('/Users/me/Library/Application Support/SOS My English/venv')
+    expect(env.SOS_MY_LANGUAGE_DATA_DIR).toBe('/Users/me/Library/Application Support/SOS My Language/data')
+    expect(env.UV_PROJECT_ENVIRONMENT).toBe('/Users/me/Library/Application Support/SOS My Language/venv')
     expect(args).toContain('--frozen')
     expect(args).toContain('--no-dev')
   })
 
   it("keeps uv's downloads in the same folder, so removing that folder removes everything", () => {
     const { env } = backendLaunch(options)
-    expect(env.UV_CACHE_DIR).toBe('/Users/me/Library/Application Support/SOS My English/uv-cache')
-    expect(env.UV_PYTHON_INSTALL_DIR).toBe('/Users/me/Library/Application Support/SOS My English/python')
+    expect(env.UV_CACHE_DIR).toBe('/Users/me/Library/Application Support/SOS My Language/uv-cache')
+    expect(env.UV_PYTHON_INSTALL_DIR).toBe('/Users/me/Library/Application Support/SOS My Language/python')
   })
 
   it('leaves the choice of Python to the project, which pins it for every way of running', () => {
@@ -50,7 +50,7 @@ describe('backendLaunch', () => {
 
   it('leaves a checkout to its own defaults', () => {
     const { args, env } = backendLaunch({ ...options, userData: null })
-    expect(env.SOS_MY_ENGLISH_DATA_DIR).toBeUndefined()
+    expect(env.SOS_MY_LANGUAGE_DATA_DIR).toBeUndefined()
     expect(env.UV_PROJECT_ENVIRONMENT).toBeUndefined()
     expect(env.UV_CACHE_DIR).toBeUndefined()
     expect(env.UV_PYTHON_INSTALL_DIR).toBeUndefined()

@@ -1,5 +1,5 @@
 """Videos like a saved one, suggested to study with next: the model thinks of searches, YouTube
-is searched with yt-dlp, and only the videos found with English subtitles at a level near the
+is searched with yt-dlp, and only the videos found with subtitles in the language being practised at a level near the
 saved one's are suggested."""
 
 from concurrent.futures import ThreadPoolExecutor
@@ -9,9 +9,9 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
 from . import videos
-from .db import get_connection
+from .db import current_language, get_connection
+from .languages import LEVELS
 from .llm import LLMError, complete, parse_json_reply
-from .pattern_list import LEVELS
 
 router = APIRouter(prefix="/api")
 
@@ -52,11 +52,11 @@ class Searches(BaseModel):
 
 
 SEARCH_PROMPT = """\
-You help an English learner find YouTube videos to study with. You get the title and the
+You help a learner of {target} find YouTube videos to study with. You get the title and the
 channel of a video they are studying, and sentences from it. Think of two or three YouTube
 searches that find other videos like it: on the same subject or in the same kind of format
-(a talk, an interview, a vlog, a lesson), spoken in English at a similar difficulty. Each
-search is a few words, as a person would type it.
+(a talk, an interview, a vlog, a lesson), spoken in {target} at a similar difficulty. Each
+search is a few words, as a person would type it, in {target}.
 
 Reply with a single JSON object matching this schema, and nothing else:
 {schema}"""
@@ -88,7 +88,7 @@ def _queries(video: videos.Video) -> list[str]:
     """The searches the model thinks of for videos like this one. Raises LLMError."""
     about = f"Title: {video.title}\nChannel: {video.channel or 'unknown'}\n\n"
     reply = complete(
-        SEARCH_PROMPT.format(schema=Searches.model_json_schema()),
+        SEARCH_PROMPT.format(target=current_language().name, schema=Searches.model_json_schema()),
         about + videos._sample(video.lines),
         max_tokens=1000,
         response_format={"type": "json_object"},
@@ -98,7 +98,7 @@ def _queries(video: videos.Video) -> list[str]:
 
 
 def _check(found: Found) -> Suggestion | None:
-    """The video as a suggestion, with its level; None when it has no English subtitles that
+    """The video as a suggestion, with its level; None when it has no subtitles in the language practised that
     can be read, or no level can be estimated for it."""
     try:
         snippets, _, generated = videos._transcript(found.video_id)
@@ -124,7 +124,8 @@ def suggest(video: int) -> list[Suggestion]:
     except LLMError as e:
         raise HTTPException(status_code=502, detail=f"Could not think of searches: {e}") from e
     with get_connection() as conn:
-        seen = {row["video_id"] for row in conn.execute("SELECT video_id FROM videos")}
+        saved = conn.execute("SELECT video_id FROM videos WHERE target = ?", (current_language().code,))
+        seen = {row["video_id"] for row in saved}
     candidates: list[Found] = []
     try:
         for query in queries:

@@ -3,6 +3,7 @@
 from pydantic import BaseModel, Field
 
 from .conversation import SPEAKERS, Correction
+from .db import current_language
 from .llm import complete, parse_json_reply
 from .settings import feedback_language
 
@@ -11,7 +12,9 @@ MAX_ITEMS = 3
 
 
 class Phrase(BaseModel):
-    english: str = Field(min_length=1, description="An expression that would have fit this conversation, in English.")
+    expression: str = Field(
+        min_length=1, description="An expression that would have fit this conversation, in the language being practised."
+    )
     note: str = Field(description="What it means or when to use it.")
 
 
@@ -23,8 +26,8 @@ class Review(BaseModel):
 
 
 SYSTEM_PROMPT = """\
-You are a friendly English conversation partner. A non-native speaker has just finished
-practising a spoken conversation with you in this situation:
+You are a friendly {target} conversation partner. A non-native speaker, who reads {language},
+has just finished practising a spoken conversation with you in this situation:
 {situation}
 
 You will get the whole conversation. The learner spoke their lines aloud; you see
@@ -41,12 +44,14 @@ focus: up to {max_items} things to work on next, most valuable first, each one s
 Look for patterns across the conversation (a mistake made more than once, very short answers,
 the same word used again and again) rather than repeating every correction one by one. Use an
 empty list if there is nothing worth working on.
-phrases: up to {max_items} natural English expressions you did not use but could have used in
-this conversation. "english" is the expression as it would be said; "note" says what it means
+phrases: up to {max_items} natural {target} expressions you did not use but could have used in
+this conversation. "expression" is the expression as it would be said; "note" says what it means
 or when to use it.
 
-Write "summary", "strengths", "focus", and every "note" in {language}: the learner reads them
-in {language}, and English examples may be quoted inside them. Keep "english" in English.
+Write "summary", "strengths", "focus", and every "note" in {language}, the learner's own
+language, whatever language the conversation was in: the learner reads them in {language}.
+{target} words and examples may be quoted inside them. Only "expression" is always written in
+{target}. {only_quoted}
 
 Reply with a single JSON object matching this schema, and nothing else:
 {schema}"""
@@ -64,8 +69,14 @@ def _transcript(lines: list[tuple[str, str, Correction | None]]) -> str:
 
 def write_review(situation: str, lines: list[tuple[str, str, Correction | None]]) -> Review:
     """Review a conversation given as (role, text, correction) lines in the order they were said."""
+    target, language = current_language(), feedback_language()
     system = SYSTEM_PROMPT.format(
-        situation=situation, language=feedback_language(), max_items=MAX_ITEMS, schema=Review.model_json_schema()
+        situation=situation,
+        target=target.name,
+        language=language,
+        only_quoted=target.only_quoted(language),
+        max_items=MAX_ITEMS,
+        schema=Review.model_json_schema(),
     )
     reply = complete(
         system,

@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { api } from '../api'
+import { t } from '../i18n'
 import type { Exercise, PatternStatus } from '../types'
 import { usePatternsStore } from './patterns'
 
@@ -14,7 +15,7 @@ export interface DrillTry {
 
 type DrillPhase = 'loading' | 'idle' | 'transcribing' | 'checking' | 'done'
 
-/** One round of a sentence pattern: a few sentences shown in the learner's language, said in English. */
+/** One round of a sentence pattern: a few sentences shown in the learner's language, said in the language practised. */
 export const useDrillStore = defineStore('drill', {
   state: () => ({
     pattern: null as PatternStatus | null,
@@ -70,7 +71,7 @@ export const useDrillStore = defineStore('drill', {
         const { text } = await api<{ text: string }>('/transcribe', { method: 'POST', body: form })
         if (round !== this.round) return
         if (!text) {
-          this.error = 'No speech was recognized. Try saying it again.'
+          this.error = t('common.noSpeech')
           return
         }
         this.phase = 'checking'
@@ -109,7 +110,7 @@ export const useDrillStore = defineStore('drill', {
         })
         usePatternsStore().update(saved)
       } catch (e) {
-        this.error = `The round was not saved: ${(e as Error).message}`
+        this.error = t('drill.notSaved', { error: (e as Error).message })
       }
     },
   },

@@ -6,6 +6,7 @@ import pytest
 
 from app import speech, transcribe
 from app.downloads import Download
+from app.languages.base import KOKORO_BYTES
 
 
 class FakeModel:
@@ -126,7 +127,7 @@ def downloads(monkeypatch):
     def voice():
         calls.append("voice")
         speech.TTS_DIR.mkdir(parents=True, exist_ok=True)
-        for name in speech.MODEL_FILES:
+        for name in speech.KOKORO_FILES:
             (speech.TTS_DIR / name).write_bytes(b"model")
 
     def whisper():
@@ -168,14 +169,28 @@ def test_voice_progress_counts_the_partly_downloaded_file(client):
     speech.TTS_DIR.mkdir(parents=True)
     (speech.TTS_DIR / "kokoro-v1.0.onnx.part").write_bytes(b"x" * 1234)
     voice = next(m for m in client.get("/api/models").json() if m["id"] == "voice")
-    assert (voice["downloaded"], voice["total"]) == (1234, speech.EXPECTED_BYTES)
+    assert (voice["downloaded"], voice["total"]) == (1234, KOKORO_BYTES)
+
+
+def speech_model_files(name: str):
+    """The folder Hugging Face keeps a Whisper model's files in."""
+    folder = transcribe.MODEL_DIR / f"models--Systran--faster-whisper-{name}" / "blobs"
+    folder.mkdir(parents=True)
+    return folder
 
 
 def test_speech_model_progress_counts_what_is_on_disk(client):
-    (transcribe.MODEL_DIR / "blobs").mkdir(parents=True)
-    (transcribe.MODEL_DIR / "blobs" / "abc.incomplete").write_bytes(b"x" * 4321)
+    (speech_model_files("small.en") / "abc.incomplete").write_bytes(b"x" * 4321)
     model = next(m for m in client.get("/api/models").json() if m["id"] == "speech-to-text")
     assert model["downloaded"] == 4321
+
+
+def test_speech_model_progress_leaves_out_the_model_of_another_language(client, german):
+    # English was practised first, so its model is there; German's is being downloaded.
+    (speech_model_files("small.en") / "abc").write_bytes(b"x" * 4000)
+    (speech_model_files("small") / "def.incomplete").write_bytes(b"x" * 321)
+    model = next(m for m in client.get("/api/models").json() if m["id"] == "speech-to-text")
+    assert model["downloaded"] == 321
 
 
 def test_transcribing_waits_for_the_model_download(downloads, monkeypatch):

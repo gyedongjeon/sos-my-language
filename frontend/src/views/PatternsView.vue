@@ -2,6 +2,10 @@
 import { onMounted, ref } from 'vue'
 import MorseSignal from '../components/MorseSignal.vue'
 import { usePatternsStore } from '../stores/patterns'
+import { useSettingsStore } from '../stores/settings'
+import { t, tc } from '../i18n'
+
+const settings = useSettingsStore()
 
 // The sentence patterns, one CEFR level at a time, with how the last round of each went.
 const store = usePatternsStore()
@@ -18,10 +22,9 @@ onMounted(() => store.load())
 
 <template>
   <main class="mx-auto max-w-3xl p-4 sm:p-6">
-    <h1 class="text-2xl font-semibold">Patterns</h1>
+    <h1 class="text-2xl font-semibold">{{ t('nav.patterns') }}</h1>
     <p class="text-sm text-base-content/70">
-      Pick a sentence pattern. You see a sentence in your language and say it in English, five sentences a round.
-      Patterns you make from a sentence of a video are under “Yours”.
+      {{ t('patterns.intro', { language: settings.learningName }) }}
     </p>
 
     <div v-if="store.loading" class="flex justify-center py-16">
@@ -30,7 +33,7 @@ onMounted(() => store.load())
     <div v-else-if="store.error" role="alert" class="alert alert-error alert-soft mt-4">{{ store.error }}</div>
 
     <template v-else>
-      <div class="mt-4 flex flex-wrap gap-2" role="tablist" aria-label="Levels">
+      <div class="mt-4 flex flex-wrap gap-2" role="tablist" :aria-label="t('common.levels')">
         <button
           v-for="level in store.levels"
           :key="level"
@@ -40,7 +43,7 @@ onMounted(() => store.load())
           :class="level === store.active ? 'btn-primary' : 'btn-ghost bg-base-100'"
           @click="store.level = level"
         >
-          {{ level }}
+          {{ tc(level) }}
         </button>
       </div>
 
@@ -50,14 +53,14 @@ onMounted(() => store.load())
             <RouterLink class="flex grow basis-64 items-center gap-4" :to="{ name: 'pattern', params: { id: p.id } }">
               <div class="grow">
                 <h2 class="card-title text-lg">{{ p.pattern }}</h2>
-                <p class="text-sm text-base-content/60">{{ p.use }}</p>
+                <p class="text-sm text-base-content/60">{{ tc(p.use) }}</p>
                 <p v-if="p.custom" class="mt-1 text-sm italic text-base-content/60">“{{ p.example }}”</p>
               </div>
               <span
                 v-if="p.sessions"
                 class="badge badge-soft whitespace-nowrap"
                 :class="p.last_correct === p.last_total ? 'badge-success' : 'badge-neutral'"
-                :title="`Practised ${p.sessions} time${p.sessions === 1 ? '' : 's'}`"
+                :title="t('patterns.practised', { n: p.sessions })"
               >
                 {{ p.last_correct }}/{{ p.last_total }}
               </span>
@@ -69,14 +72,14 @@ onMounted(() => store.load())
                 class="btn btn-ghost btn-sm"
                 :to="{ name: 'video', params: { id: p.video }, query: { line: p.position ?? 0 } }"
               >
-                In the video
+                {{ t('patterns.inVideo') }}
               </RouterLink>
               <template v-if="confirming === p.id">
-                <button class="btn btn-error btn-sm" @click="remove(p.id)">Delete for good</button>
-                <button class="btn btn-ghost btn-sm" @click="confirming = null">Keep</button>
+                <button class="btn btn-error btn-sm" @click="remove(p.id)">{{ t('common.deleteForGood') }}</button>
+                <button class="btn btn-ghost btn-sm" @click="confirming = null">{{ t('common.keep') }}</button>
               </template>
-              <button v-else class="btn btn-ghost btn-sm" :aria-label="`Delete the pattern ${p.pattern}`" @click="confirming = p.id">
-                Delete
+              <button v-else class="btn btn-ghost btn-sm" :aria-label="t('patterns.delete', { pattern: p.pattern })" @click="confirming = p.id">
+                {{ t('common.delete') }}
               </button>
             </template>
           </div>

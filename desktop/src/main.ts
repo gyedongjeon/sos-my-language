@@ -134,7 +134,7 @@ async function waitForBackend(url: string) {
 const SPLASH = `data:text/html;charset=utf-8,${encodeURIComponent(`<!doctype html>
 <body style="margin:0;height:100vh;display:grid;place-items:center;font:16px system-ui;color:#5b6477;background:#fbf8f3">
 <div style="text-align:center"><p style="font-size:14px;letter-spacing:4px;color:#f4541d;margin:0">&middot;&middot;&middot; &ndash;&ndash;&ndash; &middot;&middot;&middot;</p>
-<p style="font-size:28px;color:#14213d;margin:8px 0"><b style="color:#f4541d">SOS</b> My English</p>
+<p style="font-size:28px;color:#14213d;margin:8px 0"><b style="color:#f4541d">SOS</b> My Language</p>
 <p>Help is on the way… the first launch sets things up and can take a few minutes.</p>
 <div id="bar" style="visibility:hidden;width:320px;height:6px;margin:20px auto 10px;border-radius:3px;background:#e8e2d8;overflow:hidden">
 <div id="fill" style="width:0;height:100%;border-radius:3px;background:#f4541d;transition:width .4s"></div></div>
@@ -166,7 +166,7 @@ async function checkForUpdates(manual: boolean) {
   if (updating) return
   let update: Update | null
   try {
-    const release = await fetchLatestRelease(fetch, `SOS-My-English/${app.getVersion()}`)
+    const release = await fetchLatestRelease(fetch, `SOS-My-Language/${app.getVersion()}`)
     update = findUpdate(release, app.getVersion(), process.arch)
   } catch (e) {
     // Offline or rate-limited: say so only when the user asked.
@@ -174,7 +174,7 @@ async function checkForUpdates(manual: boolean) {
     return
   }
   if (!update) {
-    if (manual) await ask('You are up to date', `SOS My English ${app.getVersion()} is the latest version.`, ['OK'])
+    if (manual) await ask('You are up to date', `SOS My Language ${app.getVersion()} is the latest version.`, ['OK'])
     return
   }
 
@@ -184,7 +184,7 @@ async function checkForUpdates(manual: boolean) {
     update.archive || process.platform !== 'darwin'
       ? replaceBlocker({ packaged: app.isPackaged, platform: process.platform, bundle, writable })
       : 'This release cannot be installed from inside the app.'
-  const title = `SOS My English ${update.version} is available`
+  const title = `SOS My Language ${update.version} is available`
   const have = `You have ${app.getVersion()}.`
   if (blocker || !update.archive || !bundle) {
     const choice = await ask(title, `${have} ${blocker}`, ['Open the Download Page', 'Later'])
@@ -210,9 +210,9 @@ async function installUpdate(update: Update, bundle: string) {
     const zip = join(folder, 'update.zip')
     await download(update.archive, zip, fetch, (fraction) => {
       window?.setProgressBar(fraction)
-      window?.setTitle(`SOS My English — downloading ${update.version}… ${Math.round(fraction * 100)}%`)
+      window?.setTitle(`SOS My Language — downloading ${update.version}… ${Math.round(fraction * 100)}%`)
     })
-    window?.setTitle(`SOS My English — installing ${update.version}…`)
+    window?.setTitle(`SOS My Language — installing ${update.version}…`)
     const installed = await readBundleInfo(bundle)
     const next = await unpackBundle(zip, join(folder, 'unpacked'), { id: installed.id, version: update.version })
     // The swap waits for this process to end, so quitting is what starts it.
@@ -221,7 +221,7 @@ async function installUpdate(update: Update, bundle: string) {
   } catch (e) {
     updating = false
     window?.setProgressBar(-1)
-    window?.setTitle('SOS My English')
+    window?.setTitle('SOS My Language')
     await rm(folder, { recursive: true, force: true })
     const choice = await ask('The update could not be installed', (e as Error).message, ['Open the Download Page', 'Close'])
     if (choice === 0) void shell.openExternal(update.notesUrl)
@@ -240,7 +240,7 @@ async function offerMicrophoneSettings() {
   offeringSettings = true
   const choice = await ask(
     'Microphone access is turned off',
-    'SOS My English needs the microphone to hear you. Allow it in the privacy settings, then try again.',
+    'SOS My Language needs the microphone to hear you. Allow it in the privacy settings, then try again.',
     ['Open Settings', 'Later'],
   )
   offeringSettings = false
@@ -316,7 +316,7 @@ async function main() {
     void systemPreferences.askForMediaAccess('microphone')
   }
 
-  window = new BrowserWindow({ width: 1280, height: 860, minWidth: 800, minHeight: 600, title: 'SOS My English' })
+  window = new BrowserWindow({ width: 1280, height: 860, minWidth: 800, minHeight: 600, title: 'SOS My Language' })
   window.on('closed', () => (window = null))
   // External links open in the regular browser, not inside the app.
   window.webContents.setWindowOpenHandler(({ url }) => {

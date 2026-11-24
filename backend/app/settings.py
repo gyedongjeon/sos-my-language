@@ -6,7 +6,8 @@ from typing import Literal
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
-from .db import get_connection
+from .db import choose_language, get_connection, learning_language
+from .languages import LANGUAGES
 from .llm import LLMError, complete, llm_config
 
 router = APIRouter(prefix="/api")
@@ -60,6 +61,57 @@ class LLMSettingsUpdate(BaseModel):
     model: str = Field(min_length=3, max_length=200, pattern=r"^[^/\s]+/\S+$")
     # Empty keeps the key that is already saved.
     api_key: str = Field(default="", max_length=500)
+
+
+class LanguageStatus(BaseModel):
+    """A language the app teaches."""
+
+    # What it is kept under ("de"), its name in English ("German"), and its own ("Deutsch").
+    code: str
+    name: str
+    native: str
+    # The browser voice that reads its lines when the app's own voice cannot.
+    locale: str
+    # A line to hear a voice with.
+    sample: str
+    chosen: bool
+
+
+class LanguageChoice(BaseModel):
+    language: str
+
+
+def _languages() -> list[LanguageStatus]:
+    chosen = learning_language()
+    return [
+        LanguageStatus(
+            code=language.code,
+            name=language.name,
+            native=language.native,
+            locale=language.locale,
+            sample=language.sample,
+            chosen=language is chosen,
+        )
+        for language in LANGUAGES.values()
+    ]
+
+
+@router.get("/languages", response_model=list[LanguageStatus])
+def list_languages() -> list[LanguageStatus]:
+    """The languages that can be practised, and which one is. None is chosen on the first start:
+    the app asks before anything else."""
+    return _languages()
+
+
+@router.put("/language", response_model=list[LanguageStatus])
+def choose_learning_language(body: LanguageChoice) -> list[LanguageStatus]:
+    """Practise another language. What was learned in each language is kept, so the learner can
+    go back and forth between them."""
+    try:
+        choose_language(body.language)
+    except ValueError as e:
+        raise HTTPException(status_code=422, detail=str(e)) from e
+    return _languages()
 
 
 @router.get("/settings/llm", response_model=LLMSettings)

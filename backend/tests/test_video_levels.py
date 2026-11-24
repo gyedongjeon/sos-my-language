@@ -5,7 +5,6 @@ import json
 import pytest
 
 from app import videos
-from app.db import get_connection, init_db
 from app.llm import LLMError
 from app.videos import Snippet
 
@@ -92,11 +91,3 @@ def test_an_estimate_asked_for_reports_its_failure_and_keeps_the_level(client, y
     response = client.post(f"/api/videos/{added['id']}/level")
     assert response.status_code == 502 and "not responding" in response.json()["detail"]
     assert client.get(f"/api/videos/{added['id']}").json()["level"] == "B2"
-
-
-def test_a_database_from_before_levels_gains_the_column(client, youtube, model):
-    added = add(client)
-    with get_connection() as conn:
-        conn.execute("ALTER TABLE videos DROP COLUMN level")
-    init_db()
-    assert client.get(f"/api/videos/{added['id']}").json()["level"] is None

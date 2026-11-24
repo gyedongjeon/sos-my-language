@@ -8,6 +8,9 @@ import numpy as np
 import pytest
 
 from app import speech
+from app.languages.english import ENGLISH
+
+DEFAULT_VOICE = ENGLISH.default_voice
 
 
 class FakeKokoro:
@@ -29,7 +32,7 @@ class FakeKokoro:
 def voice_model(monkeypatch):
     """The model files are "downloaded" and loading them gives the fake model."""
     speech.TTS_DIR.mkdir(parents=True)
-    for name in speech.MODEL_FILES:
+    for name in speech.KOKORO_FILES:
         (speech.TTS_DIR / name).write_bytes(b"model")
     FakeKokoro.calls = []
     FakeKokoro.langs = []
@@ -47,7 +50,7 @@ def test_line_is_rendered_as_wav(voice_model):
 def test_repeated_line_is_served_from_the_cache(voice_model):
     first = speech.synthesize("How was your weekend?")
     assert speech.synthesize("How was your weekend?") == first
-    assert voice_model.calls == [f"{speech.DEFAULT_VOICE}: How was your weekend?"]
+    assert voice_model.calls == [f"{DEFAULT_VOICE}: How was your weekend?"]
 
 
 def test_another_voice_does_not_reuse_the_cached_clip(voice_model, monkeypatch):
@@ -103,15 +106,15 @@ def test_download_saves_both_model_files_and_leaves_no_partial_file(monkeypatch)
     monkeypatch.setattr(speech.urllib.request, "urlopen", urlopen)
     speech._download_models()
 
-    assert requested == [f"{speech.RELEASE_URL}/{name}" for name in speech.MODEL_FILES]
-    assert sorted(p.name for p in speech.TTS_DIR.iterdir()) == sorted(speech.MODEL_FILES)
-    assert (speech.TTS_DIR / speech.MODEL_FILES[0]).read_bytes() == b"model-bytes"
+    assert requested == [f"{speech.KOKORO_URL}/{name}" for name in speech.KOKORO_FILES]
+    assert sorted(p.name for p in speech.TTS_DIR.iterdir()) == sorted(speech.KOKORO_FILES)
+    assert (speech.TTS_DIR / speech.KOKORO_FILES[0]).read_bytes() == b"model-bytes"
 
 
 def test_download_skips_files_that_are_already_there(monkeypatch):
     speech.TTS_DIR.mkdir(parents=True)
-    (speech.TTS_DIR / speech.MODEL_FILES[0]).write_bytes(b"kept")
+    (speech.TTS_DIR / speech.KOKORO_FILES[0]).write_bytes(b"kept")
     monkeypatch.setattr(speech.urllib.request, "urlopen", lambda url, context=None: io.BytesIO(b"new"))
     speech._download_models()
-    assert (speech.TTS_DIR / speech.MODEL_FILES[0]).read_bytes() == b"kept"
-    assert (speech.TTS_DIR / speech.MODEL_FILES[1]).read_bytes() == b"new"
+    assert (speech.TTS_DIR / speech.KOKORO_FILES[0]).read_bytes() == b"kept"
+    assert (speech.TTS_DIR / speech.KOKORO_FILES[1]).read_bytes() == b"new"

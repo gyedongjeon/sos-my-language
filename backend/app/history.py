@@ -8,7 +8,7 @@ from fastapi import APIRouter, HTTPException, Response
 from pydantic import BaseModel, Field
 
 from .conversation import Correction, Message, TutorReply, tutor_reply
-from .db import get_connection
+from .db import current_language, get_connection
 from .llm import LLMError
 from .review import Review, write_review
 
@@ -33,6 +33,8 @@ class SavedMessage(BaseModel):
 
 class Conversation(BaseModel):
     id: int
+    # The code of the language it is held in ("en", "de").
+    language: str
     # None once the topic it was held on has been removed.
     topic_id: int | None
     title: str
@@ -53,6 +55,7 @@ class Conversation(BaseModel):
 
 class ConversationSummary(BaseModel):
     id: int
+    language: str
     topic_id: int | None
     title: str
     started_at: str
@@ -94,20 +97,25 @@ def _load(conn: sqlite3.Connection, conversation_id: int) -> Conversation:
         raise HTTPException(status_code=404, detail="Conversation not found")
     rows = conn.execute("SELECT * FROM messages WHERE conversation_id = ? ORDER BY id", (conversation_id,)).fetchall()
     review = Review.model_validate_json(found["review"]) if found["review"] else None
-    return Conversation(**{**dict(found), "review": review}, messages=[_message(row) for row in rows])
+    return Conversation(
+        **{**dict(found), "language": found["target"], "review": review}, messages=[_message(row) for row in rows]
+    )
 
 
 @router.get("/conversations", response_model=list[ConversationSummary])
 def list_conversations() -> list[ConversationSummary]:
-    """Conversations in which the learner said something, newest first."""
+    """Conversations in the language being practised in which the learner said something,
+    newest first."""
     with get_connection() as conn:
         rows = conn.execute(
             """
-            SELECT c.id, c.topic_id, c.title, c.started_at,
+            SELECT c.id, c.target AS language, c.topic_id, c.title, c.started_at,
                    COUNT(m.id) AS turns, COUNT(m.correction_improved) AS corrections
             FROM conversations c JOIN messages m ON m.conversation_id = c.id AND m.role = 'learner'
+            WHERE c.target = ?
             GROUP BY c.id ORDER BY c.id DESC
-            """
+            """,
+            (current_language().code,),
         ).fetchall()
     return [ConversationSummary(**dict(row)) for row in rows]
 
@@ -116,12 +124,14 @@ def list_conversations() -> list[ConversationSummary]:
 def start_conversation(body: StartRequest) -> Conversation:
     """Start a conversation on a topic; the topic's opening line is its first message."""
     with get_connection() as conn:
-        topic = conn.execute("SELECT title, situation, opener, background FROM topics WHERE id = ?", (body.topic_id,)).fetchone()
+        topic = conn.execute(
+            "SELECT target, title, situation, opener, background FROM topics WHERE id = ?", (body.topic_id,)
+        ).fetchone()
         if topic is None:
             raise HTTPException(status_code=404, detail="Topic not found")
         created = conn.execute(
-            "INSERT INTO conversations (topic_id, title, situation, background) VALUES (?, ?, ?, ?)",
-            (body.topic_id, topic["title"], topic["situation"], topic["background"]),
+            "INSERT INTO conversations (target, topic_id, title, situation, background) VALUES (?, ?, ?, ?, ?)",
+            (topic["target"], body.topic_id, topic["title"], topic["situation"], topic["background"]),
         )
         conn.execute(
             "INSERT INTO messages (conversation_id, role, text) VALUES (?, 'tutor', ?)",

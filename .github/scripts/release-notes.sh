@@ -14,14 +14,14 @@ cat <<NOTES
 1. Download \`$asset\` below, open it, and drag the app to Applications.
 2. The build is not signed with an Apple developer certificate, so macOS blocks it at first. Run this once in Terminal, then open the app:
    \`\`\`bash
-   xattr -cr "/Applications/SOS My English.app"
+   xattr -cr "/Applications/SOS My Language.app"
    \`\`\`
 3. The first launch after installing or updating downloads Python and the Python packages, so it needs an internet connection and can take a few minutes. Nothing else has to be installed.
 
-Already have the app? It offers new versions by itself at startup (or choose **SOS My English → Check for Updates…**), so there is no need to download anything here. The \`.zip\` file is what the app uses for that.
+Already have the app? It offers new versions by itself at startup (or choose **SOS My Language → Check for Updates…**), so there is no need to download anything here. The \`.zip\` file is what the app uses for that.
 
 ## Install (Windows, 64-bit)
-1. Download \`SOS-My-English-Setup-${tag#v}.exe\` below and run it. It is added to this page a few minutes after the macOS files.
+1. Download \`SOS-My-Language-Setup-${tag#v}.exe\` below and run it. It is added to this page a few minutes after the macOS files.
 2. The installer is not signed, so Windows shows "Windows protected your PC": choose **More info**, then **Run anyway**.
 3. The first launch downloads Python and the Python packages, as on macOS. A newer version is installed by running its installer; your data is kept.
 

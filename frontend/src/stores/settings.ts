@@ -1,8 +1,11 @@
 import { defineStore } from 'pinia'
 import { api } from '../api'
-import type { LLMSettings, VoiceStatus } from '../types'
+import { languageName, t } from '../i18n'
+import type { LearningLanguage, LLMSettings, VoiceStatus } from '../types'
+import { useModelsStore } from './models'
 
-/** Languages feedback can be written in: the English name the LLM is told, and its own name. */
+/** The languages a learner's own can be: corrections are explained in it, and the pages are shown
+ * in it when they are written in it (see `i18n`). The English name the LLM is told, and its own name. */
 export const LANGUAGES = [
   { name: 'English', label: 'English', codes: ['en'] },
   { name: 'Korean', label: '한국어', codes: ['ko'] },
@@ -42,8 +45,16 @@ export const useSettingsStore = defineStore('settings', {
     llm: null as LLMSettings | null,
     // The voices the partner can speak with; empty until loaded.
     voices: [] as VoiceStatus[],
+    // The languages that can be practised; null until loaded.
+    languages: null as LearningLanguage[] | null,
   }),
   getters: {
+    /** The language being practised; null until the learner has chosen one. */
+    learning: (s): LearningLanguage | null => s.languages?.find((l) => l.chosen) ?? null,
+    /** Its name as the pages say it, in the learner's language: "German", "독일어". */
+    learningName(): string {
+      return this.learning ? languageName(this.learning.code, this.learning.name) : t('lang.unknown')
+    },
     voice: (s): string | null => s.voices.find((v) => v.chosen)?.id ?? null,
   },
   actions: {
@@ -56,6 +67,34 @@ export const useSettingsStore = defineStore('settings', {
       } catch (e) {
         this.error = (e as Error).message
       }
+    },
+    async loadLanguages() {
+      try {
+        this.languages = await api<LearningLanguage[]>('/languages')
+      } catch (e) {
+        this.error = (e as Error).message
+      }
+    },
+    /** Practises another language: its topics, videos, and patterns are the ones shown from now
+     * on, and its speech models are downloaded if they are missing. Resolves with whether it was saved. */
+    async chooseLanguage(code: string): Promise<boolean> {
+      this.error = null
+      try {
+        this.languages = await api<LearningLanguage[]>('/language', { method: 'PUT', json: { language: code } })
+      } catch (e) {
+        this.error = t('settings.languageFailed', { error: (e as Error).message })
+        return false
+      }
+      void useModelsStore().start()
+      // The voices are those of the language.
+      if (this.voices.length) await this.loadVoices()
+      return true
+    },
+    /** Goes over to the language of a saved conversation the learner opened by its link, unless
+     * it is the one being practised already. */
+    async practise(code: string): Promise<boolean> {
+      if (this.learning?.code === code) return true
+      return this.chooseLanguage(code)
     },
     async loadLLM() {
       try {
@@ -78,7 +117,7 @@ export const useSettingsStore = defineStore('settings', {
         this.voices = await api<VoiceStatus[]>('/voice', { method: 'PUT', json: { voice } })
         return true
       } catch (e) {
-        this.error = `Could not change the voice: ${(e as Error).message}`
+        this.error = t('settings.voiceFailed', { error: (e as Error).message })
         return false
       }
     },
@@ -88,7 +127,7 @@ export const useSettingsStore = defineStore('settings', {
         await api('/settings', { method: 'PUT', json: { feedback_language: language } })
         this.feedbackLanguage = language
       } catch (e) {
-        this.error = `Could not save the language: ${(e as Error).message}`
+        this.error = t('settings.yourLanguageFailed', { error: (e as Error).message })
       }
     },
   },

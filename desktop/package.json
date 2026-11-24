@@ -1,10 +1,10 @@
 {
-  "name": "sos-my-english",
-  "productName": "SOS My English",
-  "description": "English speaking practice that runs on your own machine.",
+  "name": "sos-my-language",
+  "productName": "SOS My Language",
+  "description": "Speaking practice for the languages you learn, running on your own machine.",
   "private": true,
   "license": "MIT",
-  "version": "0.8.1",
+  "version": "0.1.0",
   "main": "dist/main.js",
   "scripts": {
     "frontend": "npm --prefix ../frontend install && npm --prefix ../frontend run build",
@@ -17,7 +17,7 @@
     "python": "node scripts/fetch-python.mjs"
   },
   "build": {
-    "appId": "local.sos-my-english",
+    "appId": "local.sos-my-language",
     "publish": null,
     "directories": {
       "output": "release"
@@ -83,7 +83,7 @@
       "oneClick": true,
       "perMachine": false,
       "deleteAppDataOnUninstall": false,
-      "artifactName": "SOS-My-English-Setup-${version}.${ext}"
+      "artifactName": "SOS-My-Language-Setup-${version}.${ext}"
     }
   },
   "devDependencies": {

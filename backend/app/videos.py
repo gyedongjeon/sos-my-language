@@ -23,22 +23,22 @@ from youtube_transcript_api import (
 )
 
 from .corrections import _words
-from .db import get_connection
+from .db import current_language, get_connection
+from .languages import LEVELS
 from .llm import LLMError, complete, parse_json_reply
-from .pattern_list import LEVELS
 
 router = APIRouter(prefix="/api")
 
 VIDEO_ID = re.compile(r"[A-Za-z0-9_-]{11}")
 # Path prefixes under which youtube.com names a video: /embed/<id>, /shorts/<id>, /live/<id>.
 PATH_KINDS = {"embed", "shorts", "live", "v"}
-ENGLISH = ["en", "en-US", "en-GB", "en-CA", "en-AU", "en-IN"]
 
-# What subtitles carry besides speech: [Music], (Laughter), speaker arrows, music notes.
-NOISE = re.compile(r"\[[^\]]*\]|\([A-Z][a-z]+(?: [a-z]+)?\)|>>|♪|♫")
+# What subtitles carry besides speech: [Music], speaker arrows, music notes.
+NOISE = re.compile(r"\[[^\]]*\]|>>|♪|♫")
+# One or two words in brackets are a stage direction, such as (Laughter) or (Gelächter), when
+# only the first letter is a capital; anything else in brackets was said.
+BRACKETED = re.compile(r"\(([^\W\d_]{2,}(?: [^\W\d_]+)?)\)")
 SENTENCE_END = re.compile(r"[.!?][\"'”’)\]]*$")
-# A full stop after one of these does not end a sentence.
-ABBREVIATIONS = {"mr.", "mrs.", "ms.", "dr.", "st.", "vs.", "e.g.", "i.e.", "etc."}
 # Subtitles with fewer sentence ends than one in this many words were written without
 # punctuation (typical of automatic ones), so they cannot be cut into sentences.
 WORDS_PER_END = 40
@@ -53,7 +53,7 @@ PARALLEL = 4
 
 
 class NoSubtitles(Exception):
-    """Raised with a user-facing message when a video's English subtitles cannot be had."""
+    """Raised with a user-facing message when a video's subtitles cannot be had."""
 
 
 @dataclass(frozen=True)
@@ -129,7 +129,7 @@ class VideoSummary(BaseModel):
     generated: bool
     added_at: str
     sentences: int
-    # The CEFR level of its English, A1 to C2; None while it has none.
+    # The CEFR level of what is said in it, A1 to C2; None while it has none.
     level: str | None = None
 
 
@@ -158,12 +158,12 @@ class Estimate(BaseModel):
 
 
 LEVEL_PROMPT = """\
-You are an English teacher choosing videos for learners. You get sentences taken from the
+You are a teacher of {target} choosing videos for learners. You get sentences taken from the
 start, the middle, and the end of a video's subtitles, and how fast it is spoken. Estimate the
 CEFR level a learner needs to follow the video by ear and to repeat its sentences: A1, A2, B1,
 B2, C1 or C2. Go by the vocabulary, the length and build of the sentences, how much is idiom or
 specialist language, and the speed: around 120 words a minute is slow and clear, 150 is
-ordinary speech, and 180 or more is fast.
+ordinary speech, and 180 or more is fast. Dialect or strongly regional speech makes a video harder.
 
 Reply with a single JSON object matching this schema, and nothing else:
 {schema}"""
@@ -201,7 +201,7 @@ def _estimate(lines: list[Line]) -> str | None:
     """The level the model gives a video; None when its answer is not a level. Raises LLMError
     when the model cannot be asked."""
     reply = complete(
-        LEVEL_PROMPT.format(schema=Estimate.model_json_schema()),
+        LEVEL_PROMPT.format(target=current_language().name, schema=Estimate.model_json_schema()),
         _sample(lines),
         max_tokens=1000,
         response_format={"type": "json_object"},
@@ -227,8 +227,13 @@ def video_id_of(url: str) -> str | None:
     return found if found and VIDEO_ID.fullmatch(found) else None
 
 
+def _stage_direction(found: re.Match) -> str:
+    words = found[1]
+    return " " if words[0].isupper() and words[1:].replace(" ", "").islower() else found[0]
+
+
 def _clean(text: str) -> str:
-    return " ".join(NOISE.sub(" ", unescape(text)).split())
+    return " ".join(BRACKETED.sub(_stage_direction, NOISE.sub(" ", unescape(text))).split())
 
 
 class Punctuated(BaseModel):
@@ -236,7 +241,7 @@ class Punctuated(BaseModel):
 
 
 PUNCTUATION_PROMPT = """\
-You get a stretch of automatic English subtitles: the words that were said, with no punctuation
+You get a stretch of automatic {target} subtitles: the words that were said, with no punctuation
 and few capitals. Add the punctuation (full stops, commas, question marks, exclamation marks)
 and the capitals that a careful transcript would have, so that it can be cut into sentences.
 
@@ -249,7 +254,7 @@ Reply with a single JSON object matching this schema, and nothing else:
 {schema}"""
 
 # What may stand around a word besides its letters: compared without it, words are the same.
-MARKS = string.punctuation + "“”‘’…–—"
+MARKS = string.punctuation + "„“”‚‘’…–—«»"
 # The model's reply is used for a part when at least this share of the part's words are found in
 # it unchanged. The model tends to correct recognition errors ("there" to "their") however it is
 # told not to; those words keep their own spelling and take the model's marks.
@@ -294,11 +299,12 @@ def _carry(words: list[str], written: list[str]) -> list[str] | None:
     return result
 
 
-def _punctuate_part(words: list[str]) -> list[str] | None:
-    """The words with punctuation and capitals, or None when the model's reply cannot be used."""
+def _punctuate_part(words: list[str], target: str) -> list[str] | None:
+    """The words with punctuation and capitals, or None when the model's reply cannot be used.
+    `target` is the name of the language they are in."""
     try:
         reply = complete(
-            PUNCTUATION_PROMPT.format(schema=Punctuated.model_json_schema()),
+            PUNCTUATION_PROMPT.format(target=target, schema=Punctuated.model_json_schema()),
             " ".join(words),
             max_tokens=8000,
             response_format={"type": "json_object"},
@@ -321,6 +327,8 @@ def punctuate(snippets: list[Snippet]) -> list[Snippet]:
     words = [word for text in texts for word in text.split()]
     if not words or sum(1 for word in words if SENTENCE_END.search(word)) * WORDS_PER_END >= len(words):
         return snippets
+    # Asked for here: the parts are punctuated on other threads.
+    target = current_language().name
     # Parts end with a subtitle line, so each line's words come back from one part.
     parts: list[list[int]] = [[]]
     size = 0
@@ -332,7 +340,9 @@ def punctuate(snippets: list[Snippet]) -> list[Snippet]:
         parts[-1].append(i)
         size += count
     with ThreadPoolExecutor(max_workers=PARALLEL) as pool:
-        written = list(pool.map(lambda part: _punctuate_part([w for i in part for w in texts[i].split()]), parts))
+        written = list(
+            pool.map(lambda part: _punctuate_part([w for i in part for w in texts[i].split()], target), parts)
+        )
     if all(punctuated is None for punctuated in written):
         return snippets
     result = list(snippets)
@@ -353,6 +363,7 @@ def sentences(snippets: list[Snippet]) -> list[Line]:
     """Cut subtitles into sentences. A subtitle line breaks where it fits on the screen, not
     where a sentence ends, so the lines are joined and cut again at the sentence ends; a
     word's time is taken from how far into its line it stands."""
+    abbreviations = current_language().abbreviations
     kept = [(snippet, _clean(snippet.text)) for snippet in snippets]
     kept = [(snippet, text) for snippet, text in kept if text]
     # (word, the time it is said at, the time its subtitle line ends)
@@ -386,7 +397,7 @@ def sentences(snippets: list[Snippet]) -> list[Line]:
             current = []
         current.append(word)
         text = word[0]
-        full = bool(SENTENCE_END.search(text)) and text.lower() not in ABBREVIATIONS
+        full = bool(SENTENCE_END.search(text)) and text.lower() not in abbreviations
         if full or at in line_ends or len(current) >= TOO_LONG or (len(current) >= LONG and text.endswith(",")):
             lines.append(Line(start=current[0][1], end=current[-1][2], text=" ".join(w for w, _, _ in current)))
             current = []
@@ -410,13 +421,14 @@ def _line_ends(kept: list[tuple[Snippet, str]]) -> list[float]:
 
 
 def _transcript(video_id: str) -> tuple[list[Snippet], str, bool]:
-    """The English subtitles of a video: the lines, their language code, and whether they were
-    made automatically. Subtitles written by a person are preferred."""
+    """A video's subtitles in the language being practised: the lines, their language code, and
+    whether they were made automatically. Subtitles written by a person are preferred."""
+    language = current_language()
     try:
-        track = YouTubeTranscriptApi().list(video_id).find_transcript(ENGLISH)
+        track = YouTubeTranscriptApi().list(video_id).find_transcript(language.subtitles)
         fetched = track.fetch()
     except (NoTranscriptFound, TranscriptsDisabled) as e:
-        raise NoSubtitles("This video has no English subtitles.") from e
+        raise NoSubtitles(f"This video has no {language.name} subtitles.") from e
     except VideoUnavailable as e:
         raise NoSubtitles("This video does not exist or is not available.") from e
     except YouTubeTranscriptApiException as e:
@@ -440,7 +452,10 @@ def _about(video_id: str) -> tuple[str, str]:
 
 
 def _load(conn: sqlite3.Connection, where: str, value: object) -> Video | None:
-    found = conn.execute(f"SELECT * FROM videos WHERE {where} = ?", (value,)).fetchone()
+    """A video saved for the language being practised, by one of its columns."""
+    found = conn.execute(
+        f"SELECT * FROM videos WHERE {where} = ? AND target = ?", (value, current_language().code)
+    ).fetchone()
     if found is None:
         return None
     rows = conn.execute(
@@ -452,25 +467,28 @@ def _load(conn: sqlite3.Connection, where: str, value: object) -> Video | None:
 
 @router.get("/videos", response_model=list[VideoSummary])
 def list_videos() -> list[VideoSummary]:
-    """The saved videos, newest first."""
+    """The videos saved for the language being practised, newest first."""
     with get_connection() as conn:
         rows = conn.execute(
             """
             SELECT v.*, COUNT(l.id) AS sentences
             FROM videos v LEFT JOIN video_lines l ON l.video = v.id
+            WHERE v.target = ?
             GROUP BY v.id ORDER BY v.id DESC
-            """
+            """,
+            (current_language().code,),
         ).fetchall()
     return [VideoSummary(**dict(row)) for row in rows]
 
 
 @router.post("/videos", response_model=Video, status_code=201)
 def add_video(body: NewVideo, response: Response) -> Video:
-    """Save a YouTube video to study with: its title and its English subtitles, as sentences.
+    """Save a YouTube video to study with: its title and its subtitles, as sentences.
     The video itself is not downloaded; it is played by YouTube's player."""
     video_id = video_id_of(body.url)
     if video_id is None:
         raise HTTPException(status_code=422, detail="This is not a link to a YouTube video.")
+    target = current_language()
     with get_connection() as conn:
         if saved := _load(conn, "video_id", video_id):
             response.status_code = 200
@@ -481,7 +499,7 @@ def add_video(body: NewVideo, response: Response) -> Video:
         raise HTTPException(status_code=422, detail=str(e)) from e
     lines = sentences(punctuate(snippets))
     if not lines:
-        raise HTTPException(status_code=422, detail="This video has no English subtitles.")
+        raise HTTPException(status_code=422, detail=f"This video has no {target.name} subtitles.")
     title, channel = _about(video_id)
     try:
         level = _estimate(lines)
@@ -490,8 +508,9 @@ def add_video(body: NewVideo, response: Response) -> Video:
         level = None
     with get_connection() as conn:
         created = conn.execute(
-            "INSERT INTO videos (video_id, title, channel, language, generated, level) VALUES (?, ?, ?, ?, ?, ?)",
-            (video_id, title or f"YouTube video {video_id}", channel, language, generated, level),
+            "INSERT INTO videos (target, video_id, title, channel, language, generated, level)"
+            " VALUES (?, ?, ?, ?, ?, ?, ?)",
+            (target.code, video_id, title or f"YouTube video {video_id}", channel, language, generated, level),
         )
         conn.executemany(
             "INSERT INTO video_lines (video, position, start, end, text) VALUES (?, ?, ?, ?, ?)",
@@ -552,21 +571,24 @@ MAX_HITS = 50
 
 @router.get("/video-lines", response_model=list[Hit])
 def search_lines(q: str = Query(min_length=1, max_length=200)) -> list[Hit]:
-    """The sentences of all saved videos that contain a word or phrase, newest video first."""
+    """The sentences of the videos saved for the language being practised that contain a word or
+    phrase, newest video first."""
     phrase = " ".join(q.split())
     if not phrase:
         raise HTTPException(status_code=422, detail="Type a word or a phrase to look for.")
     # The phrase is looked for as it is: "%" and "_" are not wildcards here.
-    escaped = phrase.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+    escaped = phrase.casefold().replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
     with get_connection() as conn:
+        # SQLite ignores the case of ASCII letters only; "Ä" and "ä" are told apart.
+        conn.create_function("casefold", 1, lambda text: text.casefold(), deterministic=True)
         rows = conn.execute(
             """
             SELECT l.id, l.video, v.video_id, v.title, l.position, l.start, l.text
             FROM video_lines l JOIN videos v ON v.id = l.video
-            WHERE l.text LIKE ? ESCAPE '\\'
+            WHERE v.target = ? AND casefold(l.text) LIKE ? ESCAPE '\\'
             ORDER BY v.id DESC, l.position LIMIT ?
             """,
-            (f"%{escaped}%", MAX_HITS),
+            (current_language().code, f"%{escaped}%", MAX_HITS),
         ).fetchall()
     return [Hit(**dict(row)) for row in rows]
 
@@ -598,7 +620,8 @@ def shadow(line: int, body: Said) -> Shadowed:
     """Compare what the learner said after the video with the sentence, word by word."""
     with get_connection() as conn:
         found = conn.execute(
-            "SELECT l.text, l.shadowed, l.best, v.title FROM video_lines l JOIN videos v ON v.id = l.video WHERE l.id = ?",
+            "SELECT l.text, l.shadowed, l.best, v.title, v.target"
+            " FROM video_lines l JOIN videos v ON v.id = l.video WHERE l.id = ?",
             (line,),
         ).fetchone()
         if found is None:
@@ -620,18 +643,19 @@ def shadow(line: int, body: Said) -> Shadowed:
         best = max(accuracy, found["best"] or 0)
         conn.execute("UPDATE video_lines SET shadowed = shadowed + 1, best = ? WHERE id = ?", (best, line))
         conn.execute(
-            "INSERT INTO shadowing_attempts (line, sentence, said, accuracy) VALUES (?, ?, ?, ?)",
-            (line, found["text"], body.text, accuracy),
+            "INSERT INTO shadowing_attempts (target, line, sentence, said, accuracy) VALUES (?, ?, ?, ?, ?)",
+            (found["target"], line, found["text"], body.text, accuracy),
         )
         if accuracy < 100:
             # Kept with the corrections; a new wrong try replaces the last one, to be practised again.
             conn.execute(
                 """
-                INSERT INTO shadowing_mistakes (line, title, said, improved, explanation) VALUES (?, ?, ?, ?, ?)
+                INSERT INTO shadowing_mistakes (target, line, title, said, improved, explanation)
+                VALUES (?, ?, ?, ?, ?, ?)
                 ON CONFLICT (line) DO UPDATE SET
                     title = excluded.title, said = excluded.said, improved = excluded.improved, explanation = excluded.explanation,
                     practiced = 0, practiced_at = NULL, created_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
                 """,
-                (line, found["title"], body.text, found["text"], _not_heard(words, _words(body.text))),
+                (found["target"], line, found["title"], body.text, found["text"], _not_heard(words, _words(body.text))),
             )
     return Shadowed(accuracy=accuracy, words=words, shadowed=found["shadowed"] + 1, best=best)

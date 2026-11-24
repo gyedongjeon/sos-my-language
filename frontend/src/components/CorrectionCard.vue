@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { t } from '../i18n'
 import type { Correction } from '../types'
 
 // The tutor's fix for one thing the learner said: what was said, the better version, and why.
@@ -13,7 +14,7 @@ defineEmits<{ hear: [text: string] }>()
       <p class="font-medium text-success">{{ correction.improved }}</p>
       <p class="text-base-content/70">{{ correction.explanation }}</p>
       <div>
-        <button class="btn btn-xs" @click="$emit('hear', correction.improved)">Hear it</button>
+        <button class="btn btn-xs" @click="$emit('hear', correction.improved)">{{ t('common.hearIt') }}</button>
       </div>
     </div>
   </div>

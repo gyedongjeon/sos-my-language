@@ -1,14 +1,15 @@
 import { ref } from 'vue'
+import { t } from '../i18n'
 
 /** Why recording could not start, in words the learner can act on. */
 export function micProblem(failure: unknown): string {
   const name = failure instanceof Error ? failure.name : ''
-  if (name === 'NotFoundError') return 'No microphone was found. Connect one and try again.'
+  if (name === 'NotFoundError') return t('mic.notFound')
   if (name === 'NotAllowedError') {
-    return "Microphone access is turned off. Allow it for this app in your system's privacy settings and try again."
+    return t('mic.notAllowed')
   }
-  if (name === 'NotReadableError') return 'The microphone could not be started. Close other apps that use it and try again.'
-  return name ? `The microphone is not available (${name}).` : 'The microphone is not available.'
+  if (name === 'NotReadableError') return t('mic.notReadable')
+  return name ? t('mic.unavailableNamed', { name }) : t('mic.unavailable')
 }
 
 // Records the microphone. The stream is opened on the first recording and kept until

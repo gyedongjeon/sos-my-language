@@ -1,9 +1,11 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { api } from '../api'
 import { useSpeech } from '../composables/useSpeech'
+import { megabytes, useModelsStore } from '../stores/models'
 import { LANGUAGES, useSettingsStore } from '../stores/settings'
 import type { LLMSettings } from '../types'
+import { languageName, t, voiceLabel } from '../i18n'
 
 // `prefix` is the provider name LiteLLM expects in front of the model.
 const PROVIDERS = [
@@ -94,15 +96,15 @@ async function save() {
     })
     apiKey.value = ''
   } catch (e) {
-    error.value = `Could not save: ${(e as Error).message}`
+    error.value = t('settings.saveFailed', { error: (e as Error).message })
     busy.value = false
     return
   }
   try {
     await api('/settings/llm/test', { method: 'POST' })
-    success.value = 'Saved. The model answered a test request, so everything is ready.'
+    success.value = t('settings.saved')
   } catch (e) {
-    error.value = `Saved, but the test request failed. ${(e as Error).message}`
+    error.value = t('settings.testFailed', { error: (e as Error).message })
   } finally {
     busy.value = false
   }
@@ -116,19 +118,36 @@ async function remove() {
     store.llm = await api<LLMSettings>('/settings/llm', { method: 'DELETE' })
     apiKey.value = ''
   } catch (e) {
-    error.value = `Could not remove: ${(e as Error).message}`
+    error.value = t('settings.removeFailed', { error: (e as Error).message })
   } finally {
     busy.value = false
   }
 }
 
-// The partner's voice: chosen from a few, heard before or after choosing it.
-const SAMPLE = "Hi! It's nice to see you. How has your week been so far?"
+// The partner's voice: chosen from a few of the language being practised, heard before or after
+// choosing it.
 const speech = useSpeech()
+const models = useModelsStore()
+const chosenVoice = computed(() => store.voices.find((v) => v.chosen) ?? null)
+
+// Once a download ends, the list says which voices are there.
+watch(
+  () => models.active.length,
+  (now, before) => {
+    if (before && !now) void store.loadVoices()
+  },
+)
 
 async function chooseVoice(voice: string) {
   speech.stop()
-  await store.setVoice(voice)
+  // The download it starts is shown under the navigation bar.
+  if (await store.setVoice(voice)) await models.check()
+}
+
+// Another language to practise: its own voices are listed, and its speech models downloaded.
+async function chooseLanguage(code: string) {
+  speech.stop()
+  await store.chooseLanguage(code)
 }
 
 onMounted(async () => {
@@ -140,23 +159,48 @@ onMounted(async () => {
 
 <template>
   <main class="mx-auto max-w-3xl p-4 sm:p-6">
-    <h1 class="text-2xl font-semibold">{{ saved && !saved.model ? 'Welcome — let\'s get you set up' : 'Settings' }}</h1>
+    <h1 class="text-2xl font-semibold">{{ saved && !saved.model ? t('settings.welcome') : t('nav.settings') }}</h1>
     <p v-if="saved && !saved.model" class="mt-1 text-base-content/70">
-      Two things before your first conversation: the language for your corrections and an AI model. You can change both
-      any time under Settings.
-      <RouterLink class="link" to="/">Skip for now</RouterLink>
+      {{ t('settings.welcomeBody') }}
+      <RouterLink class="link" to="/">{{ t('settings.skip') }}</RouterLink>
     </p>
 
     <section class="card mt-4 bg-base-100 shadow-sm">
       <div class="card-body gap-4">
         <div>
-          <h2 class="card-title">Feedback language</h2>
+          <h2 class="card-title">{{ t('nav.practise') }}</h2>
           <p class="text-sm text-base-content/70">
-            Corrections are explained in this language. The conversation and the corrected sentences stay in English.
+            {{ t('settings.practiseBody') }}
           </p>
         </div>
         <label class="flex flex-col gap-1">
-          <span class="text-sm font-medium">Language</span>
+          <span class="text-sm font-medium">{{ t('common.language') }}</span>
+          <select
+            class="select w-full"
+            :value="store.learning?.code ?? ''"
+            @change="chooseLanguage(($event.target as HTMLSelectElement).value)"
+          >
+            <option v-for="l in store.languages ?? []" :key="l.code" :value="l.code">
+              {{ l.native === languageName(l.code, l.name) ? l.native : `${l.native} (${languageName(l.code, l.name)})` }}
+            </option>
+          </select>
+          <span class="text-xs text-base-content/60">
+            {{ t('settings.practiseNote') }}
+          </span>
+        </label>
+      </div>
+    </section>
+
+    <section class="card mt-4 bg-base-100 shadow-sm">
+      <div class="card-body gap-4">
+        <div>
+          <h2 class="card-title">{{ t('settings.yourLanguage') }}</h2>
+          <p class="text-sm text-base-content/70">
+            {{ t('settings.yourLanguageBody', { language: store.learningName }) }}
+          </p>
+        </div>
+        <label class="flex flex-col gap-1">
+          <span class="text-sm font-medium">{{ t('common.language') }}</span>
           <select
             class="select w-full"
             :value="store.feedbackLanguage"
@@ -165,7 +209,7 @@ onMounted(async () => {
             <option v-for="l in LANGUAGES" :key="l.name" :value="l.name">{{ l.label }}</option>
           </select>
           <span class="text-xs text-base-content/60">
-            Starts from your browser's language. Saved as soon as you pick one.
+            {{ t('settings.yourLanguageNote') }}
           </span>
         </label>
       </div>
@@ -174,88 +218,95 @@ onMounted(async () => {
     <section class="card mt-4 bg-base-100 shadow-sm">
       <div class="card-body gap-4">
         <div>
-          <h2 class="card-title">Partner's voice</h2>
+          <h2 class="card-title">{{ t('models.voice') }}</h2>
           <p class="text-sm text-base-content/70">
-            The voice your partner speaks with, American or British. Every voice runs on this computer and comes with the
-            voice download, so changing it downloads nothing more.
+            {{ t('settings.voiceBody', { language: store.learningName }) }}
           </p>
         </div>
         <div class="flex flex-wrap items-end gap-2">
           <label class="flex min-w-64 flex-1 flex-col gap-1">
-            <span class="text-sm font-medium">Voice</span>
+            <span class="text-sm font-medium">{{ t('settings.voice') }}</span>
             <select
               class="select w-full"
               :value="store.voice ?? ''"
               :disabled="!store.voices.length"
               @change="chooseVoice(($event.target as HTMLSelectElement).value)"
             >
-              <option v-for="v in store.voices" :key="v.id" :value="v.id">{{ v.label }}</option>
+              <option v-for="v in store.voices" :key="v.id" :value="v.id">
+                {{ voiceLabel(v.label) }}{{ v.downloaded ? '' : t('settings.toDownload', { n: megabytes(v.size) }) }}
+              </option>
             </select>
           </label>
-          <button class="btn" :disabled="!store.voice" @click="speech.speaking.value ? speech.stop() : speech.speak(SAMPLE)">
-            {{ speech.speaking.value ? 'Stop' : 'Hear it' }}
+          <button
+            class="btn"
+            :disabled="!chosenVoice || !store.learning"
+            @click="speech.speaking.value ? speech.stop() : speech.speak(store.learning?.sample ?? '')"
+          >
+            {{ speech.speaking.value ? t('common.stop') : t('common.hearIt') }}
           </button>
         </div>
+        <span v-if="chosenVoice && !chosenVoice.downloaded" class="text-xs text-base-content/60">
+          {{ t('settings.voiceFallback') }}
+        </span>
       </div>
     </section>
 
     <section class="card mt-4 bg-base-100 shadow-sm">
       <form class="card-body gap-4" @submit.prevent="save">
         <div>
-          <h2 class="card-title">AI model</h2>
+          <h2 class="card-title">{{ t('settings.ai') }}</h2>
           <p class="text-sm text-base-content/70">
-            Your conversation partner's replies and corrections are written by an AI model you bring your own API
-            key for. The key is stored only on this computer and is sent only to the provider you choose.
+            {{ t('settings.aiBody') }}
           </p>
         </div>
 
         <p v-if="saved?.source === 'app'" class="text-sm">
-          Current: <span class="font-mono">{{ saved.model }}</span>
-          <span v-if="saved.key_hint" class="text-base-content/60"> · key ending in {{ saved.key_hint }}</span>
+          {{ t('settings.current') }} <span class="font-mono">{{ saved.model }}</span>
+          <span v-if="saved.key_hint" class="text-base-content/60">{{ t('settings.keyEnding', { hint: saved.key_hint }) }}</span>
         </p>
         <p v-else-if="saved?.source === 'env'" class="text-sm">
-          Current: <span class="font-mono">{{ saved.model }}</span>
-          <span class="text-base-content/60"> · from the LLM_MODEL environment variable. Saving here takes over from it.</span>
+          {{ t('settings.current') }} <span class="font-mono">{{ saved.model }}</span>
+          <span class="text-base-content/60">{{ t('settings.fromEnv') }}</span>
         </p>
-        <p v-else class="text-sm text-warning">No model is set up yet.</p>
+        <p v-else class="text-sm text-warning">{{ t('settings.noModel') }}</p>
 
         <label class="flex flex-col gap-1">
-          <span class="text-sm font-medium">Provider</span>
+          <span class="text-sm font-medium">{{ t('settings.provider') }}</span>
           <select v-model="providerId" class="select w-full" :disabled="busy" @change="onProviderChange">
             <option v-for="p in PROVIDERS" :key="p.id" :value="p.id">{{ p.label }}</option>
           </select>
         </label>
 
         <label class="flex flex-col gap-1">
-          <span class="text-sm font-medium">Model</span>
+          <span class="text-sm font-medium">{{ t('settings.model') }}</span>
           <input
             v-model="model"
             class="input w-full font-mono"
-            :placeholder="`e.g. ${provider.example}`"
+            :placeholder="t('settings.example', { example: provider.example })"
             :disabled="busy"
             required
             spellcheck="false"
           />
           <span v-if="providerId === 'other'" class="text-xs text-base-content/60">
-            Write it as provider/model, the way LiteLLM names it.
+            {{ t('settings.otherHelp') }}
           </span>
-          <span v-else class="text-xs text-base-content/60">The model name as the provider lists it.</span>
+          <span v-else class="text-xs text-base-content/60">{{ t('settings.modelHelp') }}</span>
         </label>
 
         <label class="flex flex-col gap-1">
-          <span class="text-sm font-medium">API key</span>
+          <span class="text-sm font-medium">{{ t('settings.apiKey') }}</span>
           <input
             v-model="apiKey"
             type="password"
             class="input w-full font-mono"
-            :placeholder="canKeepKey ? 'Leave empty to keep the saved key' : 'Paste your API key'"
+            :placeholder="canKeepKey ? t('settings.keepKey') : t('settings.pasteKey')"
             :required="!canKeepKey"
             :disabled="busy"
             autocomplete="off"
             spellcheck="false"
           />
           <a v-if="provider.keyUrl" class="link text-xs" :href="provider.keyUrl" target="_blank" rel="noreferrer">
-            Get a {{ provider.label }} API key
+            {{ t('settings.getKey', { provider: provider.label }) }}
           </a>
         </label>
 
@@ -265,10 +316,10 @@ onMounted(async () => {
         <div class="card-actions items-center">
           <button class="btn btn-primary" :disabled="busy">
             <span v-if="busy" class="loading loading-spinner loading-sm"></span>
-            Save and test
+            {{ t('settings.saveTest') }}
           </button>
           <button v-if="saved?.source === 'app'" type="button" class="btn btn-ghost" :disabled="busy" @click="remove">
-            Remove
+            {{ t('settings.remove') }}
           </button>
         </div>
       </form>
@@ -277,9 +328,9 @@ onMounted(async () => {
     <section class="card mt-4 bg-base-100 shadow-sm">
       <div class="card-body gap-4">
         <div>
-          <h2 class="card-title">Open source</h2>
+          <h2 class="card-title">{{ t('settings.openSource') }}</h2>
           <p class="text-sm text-base-content/70">
-            SOS My English is open source under the MIT License. It is built with the work below.
+            {{ t('settings.openSourceBody') }}
           </p>
         </div>
         <ul class="list">
@@ -292,7 +343,7 @@ onMounted(async () => {
           </li>
         </ul>
         <a class="link text-sm" href="/THIRD_PARTY_NOTICES.txt" target="_blank" rel="noreferrer">
-          Full license texts
+          {{ t('settings.licenses') }}
         </a>
       </div>
     </section>

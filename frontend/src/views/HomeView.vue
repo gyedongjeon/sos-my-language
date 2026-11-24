@@ -2,6 +2,10 @@
 import { onMounted, reactive, ref } from 'vue'
 import MorseSignal from '../components/MorseSignal.vue'
 import { isLink, useTopicsStore } from '../stores/topics'
+import { useSettingsStore } from '../stores/settings'
+import { t, tc } from '../i18n'
+
+const settings = useSettingsStore()
 
 const store = useTopicsStore()
 
@@ -51,11 +55,11 @@ onMounted(() => store.load())
     <header class="py-8">
       <MorseSignal />
       <h1 class="mt-3 text-4xl font-extrabold tracking-tight sm:text-5xl">
-        Stuck for words?<br />
-        <span class="text-primary">Help is on the way.</span>
+        {{ t('home.headline1') }}<br />
+        <span class="text-primary">{{ t('home.headline2') }}</span>
       </h1>
       <p class="mt-3 text-base-content/70">
-        Pick a topic and talk it through out loud. Your partner answers by voice and fixes your English as you go.
+        {{ t('home.intro', { language: settings.learningName }) }}
       </p>
     </header>
 
@@ -66,7 +70,7 @@ onMounted(() => store.load())
     <div v-else class="grid gap-3">
       <div v-if="store.error" role="alert" class="alert alert-error alert-soft">{{ store.error }}</div>
 
-      <div v-if="store.categories.length > 1" class="flex flex-wrap gap-2" role="tablist" aria-label="Topic categories">
+      <div v-if="store.categories.length > 1" class="flex flex-wrap gap-2" role="tablist" :aria-label="t('home.categories')">
         <button
           v-for="category in store.categories"
           :key="category"
@@ -76,7 +80,7 @@ onMounted(() => store.load())
           :class="category === store.active ? 'btn-primary' : 'btn-ghost bg-base-100'"
           @click="store.category = category"
         >
-          {{ category }}
+          {{ tc(category) }}
         </button>
       </div>
 
@@ -85,19 +89,19 @@ onMounted(() => store.load())
           <RouterLink class="flex grow basis-64 items-center gap-4" :to="{ name: 'practice', params: { id: topic.id } }">
             <div class="grow">
               <h2 class="card-title text-lg">
-                {{ topic.title }}
+                {{ tc(topic.title) }}
               </h2>
-              <p class="text-sm text-base-content/60">{{ topic.situation }}</p>
+              <p class="text-sm text-base-content/60">{{ tc(topic.situation) }}</p>
             </div>
             <span aria-hidden="true" class="text-2xl text-primary">›</span>
           </RouterLink>
           <template v-if="topic.custom">
             <template v-if="confirming === topic.id">
-              <button class="btn btn-error btn-sm" @click="remove(topic.id)">Delete for good</button>
-              <button class="btn btn-ghost btn-sm" @click="confirming = null">Keep</button>
+              <button class="btn btn-error btn-sm" @click="remove(topic.id)">{{ t('common.deleteForGood') }}</button>
+              <button class="btn btn-ghost btn-sm" @click="confirming = null">{{ t('common.keep') }}</button>
             </template>
-            <button v-else class="btn btn-ghost btn-sm" :aria-label="`Delete the topic ${topic.title}`" @click="confirming = topic.id">
-              Delete
+            <button v-else class="btn btn-ghost btn-sm" :aria-label="t('home.deleteTopic', { title: topic.title })" @click="confirming = topic.id">
+              {{ t('common.delete') }}
             </button>
           </template>
         </div>
@@ -105,8 +109,8 @@ onMounted(() => store.load())
 
       <form v-if="writing" class="card card-border bg-base-100" @submit.prevent="source === 'text' ? addFromText() : add()">
         <div class="card-body gap-3">
-          <h2 class="card-title text-lg">A topic of your own</h2>
-          <div class="flex flex-wrap gap-2" role="tablist" aria-label="How to make the topic">
+          <h2 class="card-title text-lg">{{ t('home.ownTitle') }}</h2>
+          <div class="flex flex-wrap gap-2" role="tablist" :aria-label="t('home.how')">
             <button
               type="button"
               role="tab"
@@ -116,7 +120,7 @@ onMounted(() => store.load())
               :disabled="store.adding"
               @click="choose('describe')"
             >
-              Describe it
+              {{ t('home.describe') }}
             </button>
             <button
               type="button"
@@ -127,48 +131,46 @@ onMounted(() => store.load())
               :disabled="store.adding"
               @click="choose('text')"
             >
-              From a link or text
+              {{ t('home.fromText') }}
             </button>
           </div>
 
           <template v-if="source === 'text'">
             <label class="flex flex-col gap-1">
-              <span class="text-sm font-medium">Link or text</span>
+              <span class="text-sm font-medium">{{ t('home.linkOrText') }}</span>
               <textarea
                 v-model="text"
                 class="textarea w-full"
                 rows="8"
                 maxlength="30000"
                 required
-                placeholder="Paste a link to an article or a speech, or paste the text itself."
+                :placeholder="t('home.textPlaceholder')"
               ></textarea>
               <span class="text-xs text-base-content/60">
-                Any language works. A link is opened and its text read; pages that need a login and videos cannot be
-                read, so paste their text instead. The text is sent to your AI model, which writes a title, a short
-                summary to talk from, and your partner's first line. The text itself is not kept.
+                {{ t('home.textHelp') }}
               </span>
             </label>
           </template>
           <template v-else>
           <label class="flex flex-col gap-1">
-            <span class="text-sm font-medium">Title</span>
-            <input v-model.trim="draft.title" class="input w-full" maxlength="80" required placeholder="Renting a car" />
+            <span class="text-sm font-medium">{{ t('home.title') }}</span>
+            <input v-model.trim="draft.title" class="input w-full" maxlength="80" required :placeholder="t('home.titlePlaceholder')" />
           </label>
           <label class="flex flex-col gap-1">
-            <span class="text-sm font-medium">Situation</span>
+            <span class="text-sm font-medium">{{ t('home.situation') }}</span>
             <textarea
               v-model.trim="draft.situation"
               class="textarea w-full"
               rows="3"
               maxlength="600"
               required
-              placeholder="Who your partner is and what you talk about. For example: my partner works at a car rental desk at the airport, and I pick up the car I booked."
+              :placeholder="t('home.situationPlaceholder')"
             ></textarea>
-            <span class="text-xs text-base-content/60">Any language works; the conversation itself is in English.</span>
+            <span class="text-xs text-base-content/60">{{ t('home.situationHelp', { language: settings.learningName }) }}</span>
           </label>
           <label class="flex flex-col gap-1">
-            <span class="text-sm font-medium">Your partner's first line <span class="font-normal text-base-content/60">(optional)</span></span>
-            <input v-model.trim="draft.opener" class="input w-full" maxlength="400" placeholder="Leave empty to have it written for you" />
+            <span class="text-sm font-medium">{{ t('home.opener') }} <span class="font-normal text-base-content/60">{{ t('home.optional') }}</span></span>
+            <input v-model.trim="draft.opener" class="input w-full" maxlength="400" :placeholder="t('home.openerPlaceholder')" />
           </label>
           </template>
           <div v-if="store.addError" role="alert" class="alert alert-error alert-soft">{{ store.addError }}</div>
@@ -178,16 +180,16 @@ onMounted(() => store.load())
               type="submit"
               :disabled="store.adding || (source === 'text' && !isLink(text) && text.trim().length < MIN_TEXT)"
             >
-              {{ source === 'text' ? 'Make the topic' : 'Add the topic' }}
+              {{ source === 'text' ? t('home.make') : t('home.add') }}
             </button>
-            <button class="btn btn-ghost btn-sm" type="button" :disabled="store.adding" @click="writing = false">Cancel</button>
+            <button class="btn btn-ghost btn-sm" type="button" :disabled="store.adding" @click="writing = false">{{ t('common.cancel') }}</button>
             <span v-if="store.adding" class="flex items-center gap-2 text-sm text-base-content/60">
-              <MorseSignal animated /> {{ source === 'text' ? 'Reading it…' : 'Adding…' }}
+              <MorseSignal animated /> {{ source === 'text' ? t('home.reading') : t('common.adding') }}
             </span>
           </div>
         </div>
       </form>
-      <button v-else class="btn btn-outline btn-primary justify-self-start" @click="open">+ Add your own topic</button>
+      <button v-else class="btn btn-outline btn-primary justify-self-start" @click="open">{{ t('home.addOwn') }}</button>
     </div>
   </main>
 </template>

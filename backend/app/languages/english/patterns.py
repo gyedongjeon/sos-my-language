@@ -5,27 +5,10 @@ usually taught (the English Grammar Profile was the reference). An id is kept fo
 progress points at it.
 """
 
-from dataclasses import dataclass
+from ..base import Pattern, level
 
-LEVELS = ["A1", "A2", "B1", "B2", "C1", "C2"]
-
-
-@dataclass(frozen=True)
-class Pattern:
-    id: str
-    level: str
-    # The pattern as a formula, what it is used for, and one sentence that shows it.
-    pattern: str
-    use: str
-    example: str
-
-
-def _level(level: str, *rows: tuple[str, str, str, str]) -> list[Pattern]:
-    return [Pattern(id, level, pattern, use, example) for id, pattern, use, example in rows]
-
-
-PATTERNS: list[Pattern] = [
-    *_level(
+PATTERNS: tuple[Pattern, ...] = (
+    *level(
         "A1",
         ("id-like", "I'd like + noun / to + verb", "Asking for something politely", "I'd like a cup of coffee, please."),
         ("there-is", "There is / There are …", "Saying what is somewhere", "There are two parks near my house."),
@@ -48,7 +31,7 @@ PATTERNS: list[Pattern] = [
         ("i-think", "I think (that) …", "Giving a simple opinion", "I think it's a good idea."),
         ("was-were", "I was / We were …", "Saying where or how you were", "I was at home yesterday."),
     ),
-    *_level(
+    *level(
         "A2",
         ("have-to", "have to / don't have to + verb", "Saying what is or is not necessary", "I have to get up early tomorrow."),
         ("past-continuous", "was / were + -ing + when + past", "Saying what was going on when something happened", "I was cooking when you called."),
@@ -71,7 +54,7 @@ PATTERNS: list[Pattern] = [
         ("arranged-future", "I'm + -ing + future time", "Talking about something already arranged", "I'm meeting a friend tonight."),
         ("why-dont-we", "Why don't we + verb …? / How about + -ing …?", "Making a suggestion", "Why don't we take a taxi?"),
     ),
-    *_level(
+    *level(
         "B1",
         ("present-perfect-continuous", "have been + -ing + for / since", "Saying how long something has been going on", "I've been learning English for three years."),
         ("used-to", "used to + verb", "Talking about a past habit or state that is over", "I used to play the piano."),
@@ -94,7 +77,7 @@ PATTERNS: list[Pattern] = [
         ("supposed-to", "be supposed to + verb", "Saying what is expected or arranged", "I'm supposed to be at work by nine."),
         ("question-tag", "…, isn't it? / …, don't you?", "Checking that someone agrees", "It's cold today, isn't it?"),
     ),
-    *_level(
+    *level(
         "B2",
         ("should-have", "should have + past participle", "Regretting or criticising something in the past", "I should have left earlier."),
         ("third-conditional", "If + past perfect, … would have + past participle", "Imagining a different past", "If I had known, I would have told you."),
@@ -117,7 +100,7 @@ PATTERNS: list[Pattern] = [
         ("modal-passive", "modal / need to + be + past participle", "Saying what must or should happen to something", "The report needs to be finished by Friday."),
         ("would-habit", "would + verb (past habit)", "Describing something you did repeatedly in the past", "When I was young, we would go fishing every summer."),
     ),
-    *_level(
+    *level(
         "C1",
         ("never-have-i", "Never / Rarely / Seldom + auxiliary + subject", "Stressing how unusual something is", "Never have I seen such a mess."),
         ("not-only-inversion", "Not only + auxiliary + subject …, but … also …", "Stressing a second point", "Not only did he apologise, but he also paid for the damage."),
@@ -132,7 +115,7 @@ PATTERNS: list[Pattern] = [
         ("no-sooner", "No sooner had + subject + past participle than …", "Saying one thing followed another at once", "No sooner had I left than it started to rain."),
         ("only-after", "Only when / Only after … + auxiliary + subject", "Stressing the moment something happened", "Only after the meeting did I realise my mistake."),
     ),
-    *_level(
+    *level(
         "C2",
         ("were-to", "Were + subject + to + verb, … would …", "Imagining an unlikely future, formally", "Were the company to fail, thousands would lose their jobs."),
         ("subjunctive", "insist / suggest / demand + that + subject + base verb", "Saying what someone requires, formally", "They insisted that he be present."),
@@ -143,4 +126,4 @@ PATTERNS: list[Pattern] = [
         ("little-did", "Little did + subject + know / realise …", "Saying someone had no idea of what was coming", "Little did I know that it would change my life."),
         ("but-for", "But for + noun, … would (have) …", "Naming the one thing that made the difference", "But for your help, I would have failed."),
     ),
-]
+)

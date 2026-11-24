@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { api } from '../api'
+import { t } from '../i18n'
 import type { Correction, Message, Phase, Review, Topic } from '../types'
 
 interface Transcript {
@@ -64,7 +65,7 @@ export const usePracticeStore = defineStore('practice', {
       }
       if (session !== this.session) return null
       if (!heard.text) {
-        this.error = 'No speech was recognized. Try saying it again.'
+        this.error = t('common.noSpeech')
         this.phase = 'idle'
         return null
       }
@@ -115,7 +116,7 @@ export const usePracticeStore = defineStore('practice', {
         return data.reply
       } catch (e) {
         if (session === this.session) {
-          this.error = `Could not get a reply: ${(e as Error).message}`
+          this.error = t('practice.replyFailed', { error: (e as Error).message })
           this.phase = 'idle'
         }
         return null
@@ -133,7 +134,7 @@ export const usePracticeStore = defineStore('practice', {
         if (session !== this.session) return
         this.review = review
       } catch (e) {
-        if (session === this.session) this.error = `Could not write the summary: ${(e as Error).message}`
+        if (session === this.session) this.error = t('practice.summaryFailed', { error: (e as Error).message })
       } finally {
         if (session === this.session) this.phase = 'idle'
       }

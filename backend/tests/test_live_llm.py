@@ -56,7 +56,7 @@ def test_a_review_is_written_in_the_chosen_language_with_english_phrases(client)
     assert re.search("[가-힣]", review["summary"])
     # Both lines have a mistake, so there is something to work on.
     assert review["focus"] and all(re.search("[가-힣]", item) for item in review["focus"])
-    assert all(phrase["english"].strip() and not re.search("[가-힣]", phrase["english"]) for phrase in review["phrases"])
+    assert all(phrase["expression"].strip() and not re.search("[가-힣]", phrase["expression"]) for phrase in review["phrases"])
 
 
 def test_the_opening_line_of_an_own_topic_is_short_plain_english(client):
@@ -186,3 +186,58 @@ def test_automatic_subtitles_without_punctuation_are_cut_into_sentences(client, 
     # Cut at sentence ends, not at the subtitle lines, with every word said kept as it was.
     assert lines != said and any(re.search(r"[.!?]$", line) for line in lines), lines
     assert [w.strip(".,!?:;").lower() for line in lines for w in line.split()] == " ".join(said).lower().split()
+
+
+# --- German: the same prompts with another language to practise ---------------------------------
+
+GERMAN_WORD = re.compile(r"\b(ich|du|sie|der|die|das|und|ist|nicht|ein|eine|mit|was|wie|hast|haben|bin|war)\b", re.I)
+
+
+def german_reply_to(client, said: str) -> dict:
+    topic = client.get("/api/topics").json()[0]["id"]
+    conversation = client.post("/api/conversations", json={"topic_id": topic}).json()
+    client.post(f"/api/conversations/{conversation['id']}/messages", json={"text": said})
+    response = client.post(f"/api/conversations/{conversation['id']}/reply")
+    assert response.status_code == 200, response.text
+    return {**response.json(), "conversation": conversation["id"]}
+
+
+def test_the_partner_answers_in_german_and_explains_in_the_chosen_language(client, german):
+    client.put("/api/settings", json={"feedback_language": "Korean"})
+    reply = german_reply_to(client, "gestern ich gehe an den Strand mit mein Freund")
+    assert GERMAN_WORD.search(reply["reply"]) and not re.search("[가-힣]", reply["reply"])
+    correction = reply["correction"]
+    assert correction is not None and correction["improved"] != correction["original"]
+    # The explanation is in the learner's language, not in the language of the conversation.
+    assert re.search("[가-힣]", correction["explanation"])
+    assert GERMAN_WORD.search(correction["improved"]) and not re.search("[가-힣]", correction["improved"])
+
+
+def test_a_review_of_a_german_conversation_is_written_in_the_chosen_language(client, german):
+    client.put("/api/settings", json={"feedback_language": "Korean"})
+    conversation = german_reply_to(client, "gestern ich gehe an den Strand mit mein Freund")["conversation"]
+    response = client.post(f"/api/conversations/{conversation}/review")
+    assert response.status_code == 200, response.text
+    review = response.json()
+    assert re.search("[가-힣]", review["summary"])
+    assert all(re.search("[가-힣]", item) for item in review["focus"])
+    assert all(phrase["expression"].strip() and not re.search("[가-힣]", phrase["expression"]) for phrase in review["phrases"])
+
+
+def test_german_pattern_sentences_are_in_the_learners_language_with_german_answers(client, german):
+    client.put("/api/settings", json={"feedback_language": "Korean"})
+    response = client.post("/api/patterns/weil/exercises")
+    assert response.status_code == 200, response.text
+    exercises = response.json()
+    assert re.search("[가-힣]", exercises["note"]) and len(exercises["items"]) == 5
+    for item in exercises["items"]:
+        assert re.search("[가-힣]", item["prompt"]), item
+        assert "weil" in item["answer"].lower() and not re.search("[가-힣]", item["answer"]), item
+
+
+def test_the_opening_line_of_an_own_german_topic_is_in_german(client, german):
+    own = {"title": "Renting a car", "situation": "공항 렌터카 창구에서 예약한 차를 찾는다. 상대는 직원이다."}
+    response = client.post("/api/topics", json=own)
+    assert response.status_code == 201, response.text
+    opener = response.json()["opener"]
+    assert GERMAN_WORD.search(opener) and not re.search("[가-힣]", opener)

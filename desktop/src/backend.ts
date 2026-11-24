@@ -17,7 +17,7 @@ export interface BackendOptions {
 export function backendLaunch({ project, frontend, userData, port, env, python }: BackendOptions) {
   const launchEnv: NodeJS.ProcessEnv = {
     ...env,
-    SOS_MY_ENGLISH_FRONTEND_DIST: frontend,
+    SOS_MY_LANGUAGE_FRONTEND_DIST: frontend,
   }
   if (python) {
     // Shipped with the Windows app: on a first trial there, downloading Python stalled every time.
@@ -27,7 +27,7 @@ export function backendLaunch({ project, frontend, userData, port, env, python }
   const args = ['run', '--project', project]
   if (userData) {
     // The app bundle is read-only, so the packaged app keeps its files in the user's profile.
-    launchEnv.SOS_MY_ENGLISH_DATA_DIR = join(userData, 'data')
+    launchEnv.SOS_MY_LANGUAGE_DATA_DIR = join(userData, 'data')
     launchEnv.UV_PROJECT_ENVIRONMENT = join(userData, 'venv')
     // uv's download cache and the Python it installs would otherwise go to shared folders in
     // the home folder; here, removing the app's folder removes everything the app put on disk.

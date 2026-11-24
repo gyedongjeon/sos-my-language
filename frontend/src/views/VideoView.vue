@@ -10,6 +10,10 @@ import { useShadowStore } from '../stores/shadow'
 import { LEVELS, useVideosStore } from '../stores/videos'
 import type { PatternStatus, Video } from '../types'
 import { clock, lineAt, pick, stepFrom } from '../video'
+import { useSettingsStore } from '../stores/settings'
+import { t, tc } from '../i18n'
+
+const settings = useSettingsStore()
 
 // A saved video, listened to one sentence at a time, and shadowed: said after the speaker.
 const props = defineProps<{ id: number }>()
@@ -152,7 +156,7 @@ async function startShadowing() {
 async function stopShadowing() {
   const audio = await recorder.stop()
   const line = lines.value[chosen.value]
-  if (!audio) micError.value = 'Nothing was recorded. Try again.'
+  if (!audio) micError.value = t('common.nothingRecorded')
   else if (line) await shadow.attempt(line, audio)
 }
 
@@ -210,7 +214,7 @@ onBeforeUnmount(() => recorder.release())
 
 <template>
   <main class="mx-auto max-w-3xl p-4 sm:p-6">
-    <RouterLink class="link text-sm" :to="{ name: 'videos' }">‹ All videos</RouterLink>
+    <RouterLink class="link text-sm" :to="{ name: 'videos' }">{{ t('video.all') }}</RouterLink>
 
     <div v-if="loading" class="flex justify-center py-16">
       <MorseSignal animated />
@@ -220,40 +224,37 @@ onBeforeUnmount(() => recorder.release())
       <header class="mt-2">
         <h1 class="text-2xl font-semibold">{{ video.title }}</h1>
         <p class="text-sm text-base-content/70">
-          <template v-if="video.channel">{{ video.channel }} · </template>{{ lines.length }} sentences<template
-            v-if="video.generated"
-          >
-            · automatic subtitles, so some words and sentence breaks may be off</template
-          >
+          <template v-if="video.channel">{{ video.channel }} · </template>{{ t('common.sentences', { n: lines.length })
+          }}<template v-if="video.generated">{{ t('video.automaticNote') }}</template>
         </p>
         <div class="mt-2 flex flex-wrap items-center gap-2 text-sm">
           <label class="flex items-center gap-2">
-            Level
+            {{ t('video.level') }}
             <select
               class="select select-sm w-28"
               :value="video.level ?? ''"
-              aria-label="Level of this video"
+              :aria-label="t('video.levelOf')"
               @change="setLevel(($event.target as HTMLSelectElement).value)"
             >
-              <option value="">None</option>
+              <option value="">{{ t('video.none') }}</option>
               <option v-for="level in LEVELS" :key="level" :value="level">{{ level }}</option>
             </select>
           </label>
-          <button class="btn btn-ghost btn-sm" :disabled="estimating" @click="estimateLevel">Estimate it</button>
-          <span v-if="estimating" class="flex items-center gap-2 text-base-content/60"><MorseSignal animated /> Estimating…</span>
+          <button class="btn btn-ghost btn-sm" :disabled="estimating" @click="estimateLevel">{{ t('video.estimate') }}</button>
+          <span v-if="estimating" class="flex items-center gap-2 text-base-content/60"><MorseSignal animated /> {{ t('video.estimating') }}</span>
           <span v-if="videos.error" role="alert" class="text-error">{{ videos.error }}</span>
           <button class="btn btn-ghost btn-sm" :disabled="videos.suggesting" @click="videos.suggest(video.id)">
-            Find similar videos
+            {{ t('video.similar') }}
           </button>
         </div>
 
-        <section v-if="suggested" class="mt-2 rounded-box bg-base-100 p-3 text-sm" aria-label="Similar videos">
+        <section v-if="suggested" class="mt-2 rounded-box bg-base-100 p-3 text-sm" :aria-label="t('video.similarList')">
           <p v-if="videos.suggesting" class="flex items-center gap-2 text-base-content/60">
-            <MorseSignal animated /> Looking on YouTube for videos like this one…
+            <MorseSignal animated /> {{ t('video.looking') }}
           </p>
           <div v-else-if="videos.suggestError" role="alert" class="alert alert-error alert-soft">{{ videos.suggestError }}</div>
           <p v-else-if="!videos.suggestions.length" class="text-base-content/60">
-            No videos with English subtitles at a similar level were found. Try again for other searches.
+            {{ t('video.noSimilar', { language: settings.learningName }) }}
           </p>
           <ul v-else class="grid gap-2">
             <li v-for="s in videos.suggestions" :key="s.video_id" class="flex flex-wrap items-center gap-x-3 gap-y-1">
@@ -263,11 +264,11 @@ onBeforeUnmount(() => recorder.release())
                   <template v-if="s.channel">{{ s.channel }} · </template>
                   <template v-if="s.duration !== null">{{ clock(s.duration) }} · </template>
                   <span class="badge badge-soft badge-primary badge-sm">{{ s.level }}</span>
-                  <template v-if="s.generated"> · automatic subtitles</template>
+                  <template v-if="s.generated">{{ t('video.automatic') }}</template>
                 </p>
               </div>
               <button class="btn btn-primary btn-sm" :disabled="videos.adding" @click="addSuggested(s.video_id)">
-                {{ adding === s.video_id ? 'Adding…' : 'Add' }}
+                {{ adding === s.video_id ? t('common.adding') : t('video.add') }}
               </button>
             </li>
           </ul>
@@ -280,80 +281,80 @@ onBeforeUnmount(() => recorder.release())
         <div v-if="player.error.value" role="alert" class="alert alert-error alert-soft mt-2">{{ player.error.value }}</div>
 
         <div class="mt-3 flex flex-wrap items-center gap-2">
-          <button class="btn btn-sm" :disabled="!player.ready.value" aria-label="Previous sentence" @click="step(-1)">‹ Previous</button>
+          <button class="btn btn-sm" :disabled="!player.ready.value" :aria-label="t('video.previousSentence')" @click="step(-1)">{{ t('video.previous') }}</button>
           <button class="btn btn-primary btn-sm" :disabled="!player.ready.value" @click="toggle">
-            {{ player.playing.value ? 'Pause' : 'Play the sentence' }}
+            {{ player.playing.value ? t('video.pause') : t('video.play') }}
           </button>
-          <button class="btn btn-sm" :disabled="!player.ready.value" aria-label="Next sentence" @click="step(1)">Next ›</button>
+          <button class="btn btn-sm" :disabled="!player.ready.value" :aria-label="t('video.nextSentence')" @click="step(1)">{{ t('video.next') }}</button>
           <label class="label cursor-pointer gap-2 text-sm">
             <input v-model="repeat" type="checkbox" class="toggle toggle-sm" />
-            Repeat
+            {{ t('video.repeat') }}
           </label>
           <label class="flex items-center gap-2 text-sm">
-            Speed
+            {{ t('video.speed') }}
             <select v-model.number="rate" class="select select-sm w-24">
               <option v-for="r in RATES" :key="r" :value="r">{{ r }}×</option>
             </select>
           </label>
           <label class="label cursor-pointer gap-2 text-sm">
             <input v-model="showText" type="checkbox" class="toggle toggle-sm" />
-            Show the text
+            {{ t('video.showText') }}
           </label>
-          <label class="label cursor-pointer gap-2 text-sm" title="Each sentence in your feedback language">
+          <label class="label cursor-pointer gap-2 text-sm" :title="t('video.translationHint')">
             <input v-model="videos.showTranslation" type="checkbox" class="toggle toggle-sm" />
-            Translation
+            {{ t('video.translation') }}
           </label>
           <button v-if="recorder.recording.value" class="btn btn-error btn-sm" @click="stopShadowing">
             <span class="inline-block size-2 animate-pulse rounded-full bg-current"></span>
-            Stop
+            {{ t('common.stop') }}
           </button>
           <button
             v-else
             class="btn btn-sm btn-neutral"
             :disabled="!player.ready.value || current < 0 || shadow.checking"
-            title="Listen to the sentence, then say it yourself"
+            :title="t('video.sayAfterHint')"
             @click="startShadowing"
           >
-            Say it after
+            {{ t('video.sayAfter') }}
           </button>
           <button
             class="btn btn-sm"
             :disabled="!player.ready.value || current < 0 || marking !== null"
-            title="Practise an expression of this sentence with other sentences"
+            :title="t('video.makePatternHint')"
             @click="startMarking"
           >
-            Make a pattern
+            {{ t('video.makePattern') }}
           </button>
         </div>
 
         <p v-if="videos.showTranslation && videos.translating" class="mt-2 flex items-center gap-2 text-sm text-base-content/60">
-          <MorseSignal animated /> Translating the sentences… The first time takes a moment.
+          <MorseSignal animated /> {{ t('video.translating') }}
         </p>
         <div v-else-if="videos.showTranslation && videos.translateError" role="alert" class="alert alert-error alert-soft mt-2">
           {{ videos.translateError }}
-          <button class="btn btn-sm" @click="video && videos.translate(video.id)">Try again</button>
+          <button class="btn btn-sm" @click="video && videos.translate(video.id)">{{ t('common.tryAgain') }}</button>
         </div>
         <div
           v-else-if="videos.showTranslation && videos.translatedFor === video.id && videos.untranslated"
           role="status"
           class="alert alert-warning alert-soft mt-2"
         >
-          {{ videos.untranslated }} {{ videos.untranslated === 1 ? 'sentence' : 'sentences' }} could not be translated.
-          <button class="btn btn-sm" @click="videos.translate(video.id)">Try again</button>
+          {{ t('video.untranslated', { n: videos.untranslated }) }}
+          <button class="btn btn-sm" @click="videos.translate(video.id)">{{ t('common.tryAgain') }}</button>
         </div>
 
         <div v-if="marking !== null" class="mt-2 rounded-box bg-base-100 p-3 text-sm">
           <template v-if="made">
-            <p class="text-base-content/60">Saved to your patterns:</p>
+            <p class="text-base-content/60">{{ t('video.savedPattern') }}</p>
             <p class="text-base font-medium">{{ made.pattern }}</p>
-            <p class="text-base-content/70">{{ made.use }}</p>
+            <p class="text-base-content/70">{{ tc(made.use) }}</p>
             <div class="mt-2 flex flex-wrap gap-2">
-              <RouterLink class="btn btn-primary btn-sm" :to="{ name: 'pattern', params: { id: made.id } }">Practise it</RouterLink>
-              <button class="btn btn-ghost btn-sm" @click="stopMarking">Close</button>
+              <RouterLink class="btn btn-primary btn-sm" :to="{ name: 'pattern', params: { id: made.id } }">{{ t('video.practiseIt') }}</RouterLink>
+              <button class="btn btn-ghost btn-sm" @click="stopMarking">{{ t('common.close') }}</button>
             </div>
           </template>
           <template v-else>
-            <p class="text-base-content/60">Click the first and the last word of the expression you want to practise.</p>
+            <p class="text-base-content/60">{{ t('video.markHelp') }}</p>
             <p class="mt-1 flex flex-wrap gap-1 text-base">
               <button
                 v-for="(word, i) in markWords"
@@ -368,10 +369,10 @@ onBeforeUnmount(() => recorder.release())
               </button>
             </p>
             <div class="mt-2 flex flex-wrap items-center gap-2">
-              <button class="btn btn-primary btn-sm" :disabled="!phrase || patterns.making" @click="makePattern">Make the pattern</button>
-              <button class="btn btn-ghost btn-sm" :disabled="patterns.making" @click="stopMarking">Cancel</button>
+              <button class="btn btn-primary btn-sm" :disabled="!phrase || patterns.making" @click="makePattern">{{ t('video.makeThePattern') }}</button>
+              <button class="btn btn-ghost btn-sm" :disabled="patterns.making" @click="stopMarking">{{ t('common.cancel') }}</button>
               <span v-if="patterns.making" class="flex items-center gap-2 text-base-content/60">
-                <MorseSignal animated /> Working out the pattern…
+                <MorseSignal animated /> {{ t('video.working') }}
               </span>
             </div>
             <div v-if="patterns.makeError" role="alert" class="alert alert-error alert-soft mt-2">{{ patterns.makeError }}</div>
@@ -379,11 +380,11 @@ onBeforeUnmount(() => recorder.release())
         </div>
 
         <div v-if="shadow.checking" class="mt-2 flex items-center gap-2 text-sm text-base-content/60">
-          <MorseSignal animated /> Listening to what you said…
+          <MorseSignal animated /> {{ t('common.listening') }}
         </div>
         <div v-else-if="result" class="mt-2 rounded-box bg-base-100 p-3 text-sm" aria-live="polite">
           <p class="font-medium" :class="result.accuracy === 100 ? 'text-success' : 'text-primary'">
-            {{ result.accuracy === 100 ? 'Every word came through!' : `${result.accuracy}% of the words came through.` }}
+            {{ result.accuracy === 100 ? t('video.allHeard') : t('video.someHeard', { n: result.accuracy }) }}
           </p>
           <p class="mt-1 text-base">
             <template v-for="(word, i) in result.words" :key="i">
@@ -391,14 +392,14 @@ onBeforeUnmount(() => recorder.release())
               >{{ ' ' }}
             </template>
           </p>
-          <p class="mt-1 text-base-content/60">You said: {{ result.heard }}</p>
+          <p class="mt-1 text-base-content/60">{{ t('common.youSaid') }} {{ result.heard }}</p>
         </div>
         <div v-if="micError || shadow.error" role="alert" class="alert alert-error alert-soft mt-2">
           {{ micError || shadow.error }}
         </div>
       </div>
 
-      <ol ref="list" class="mt-2 grid gap-1" aria-label="Sentences">
+      <ol ref="list" class="mt-2 grid gap-1" :aria-label="t('video.sentences')">
         <li v-for="(line, i) in lines" :key="i" :data-line="i">
           <button
             class="flex w-full items-baseline gap-3 rounded-lg px-3 py-2 text-left transition hover:bg-base-100"
@@ -410,7 +411,7 @@ onBeforeUnmount(() => recorder.release())
             <span class="w-12 shrink-0 text-xs text-base-content/50 tabular-nums">{{ clock(line.start) }}</span>
             <span class="flex flex-col">
               <span v-if="showText">{{ line.text }}</span>
-              <span v-else class="italic text-base-content/40">Sentence {{ i + 1 }}</span>
+              <span v-else class="italic text-base-content/40">{{ t('video.sentenceN', { n: i + 1 }) }}</span>
               <span
                 v-if="videos.showTranslation && videos.translatedFor === video.id && videos.translations[line.id]"
                 class="text-sm text-base-content/60"
@@ -421,7 +422,7 @@ onBeforeUnmount(() => recorder.release())
               v-if="line.best !== null"
               class="badge badge-soft badge-sm ml-auto shrink-0"
               :class="line.best === 100 ? 'badge-success' : 'badge-neutral'"
-              :title="`Shadowed ${line.shadowed} time${line.shadowed === 1 ? '' : 's'}; best ${line.best}%`"
+              :title="t('video.shadowed', { n: line.shadowed, best: line.best })"
             >
               {{ line.best }}%
             </span>
@@ -430,7 +431,7 @@ onBeforeUnmount(() => recorder.release())
       </ol>
     </template>
 
-    <div v-else role="alert" class="alert alert-error mt-4">{{ error || 'This video could not be opened.' }}</div>
+    <div v-else role="alert" class="alert alert-error mt-4">{{ error || t('video.cannotOpen') }}</div>
   </main>
 </template>
 

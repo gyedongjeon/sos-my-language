@@ -5,6 +5,7 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
+from .db import current_language
 from .llm import complete, format_conversation, parse_json_reply
 from .settings import feedback_language
 
@@ -18,19 +19,19 @@ class Message(BaseModel):
 
 class Correction(BaseModel):
     original: str = Field(description="The phrase or sentence the learner said, quoted as-is.")
-    improved: str = Field(description="A more correct or natural way to say it, in English.")
+    improved: str = Field(description="A more correct or natural way to say it, in the language being practised.")
     explanation: str = Field(description="Why the improved version is better.")
 
 
 class TutorReply(BaseModel):
-    reply: str = Field(min_length=1, description="The tutor's next line, in English.")
+    reply: str = Field(min_length=1, description="The tutor's next line, in the language being practised.")
     correction: Correction | None = Field(
         default=None, description="The most valuable fix to the learner's latest message, or null."
     )
 
 
 SYSTEM_PROMPT = """\
-You are a friendly English conversation partner helping a non-native speaker practice
+You are a friendly {target} conversation partner helping a non-native speaker practice
 speaking. You are having a spoken conversation in this situation:
 {situation}
 
@@ -41,8 +42,8 @@ do not treat an obvious recognition error (a word that makes no sense where a
 similar-sounding word would) as the learner's mistake.
 
 reply: stay in the situation and respond to what the learner just said, then keep the
-conversation going, usually with one question. Keep it easy to follow by ear: one or two
-short sentences in natural, everyday English at a level slightly above the learner's.
+conversation going, usually with one question.{address} Keep it easy to follow by ear: one or two
+short sentences in natural, everyday {target} at a level slightly above the learner's.
 Plain text only, with no formatting, because it is read aloud to the learner as-is. Do not
 correct the learner here.
 
@@ -53,9 +54,9 @@ what they said, give the better version, and explain why in one or two sentences
 already fine, or the only difference would be punctuation or capitals, use null; do not
 invent a problem. In "explanation", talk about what to say, not how to write it.
 
-Write "explanation" in {language}: the learner reads it in {language}, even though the
-conversation is in English, and English examples may be quoted inside it. Keep "reply",
-"original", and "improved" in English.
+Write "explanation" in {language}, the learner's own language, whatever language the
+conversation is in: the learner reads it in {language}, and {target} examples may be quoted
+inside it. {only_quoted} Keep "reply", "original", and "improved" in {target}.
 
 Reply with a single JSON object matching this schema, and nothing else:
 {schema}"""
@@ -69,8 +70,15 @@ def _spoken(text: str) -> list[str]:
 
 def tutor_reply(situation: str, messages: list[Message]) -> TutorReply:
     """Return the tutor's next line and a correction for the learner's latest message."""
+    target, language = current_language(), feedback_language()
     system = SYSTEM_PROMPT.format(
-        situation=situation, language=feedback_language(), schema=TutorReply.model_json_schema()
+        situation=situation,
+        target=target.name,
+        # The languages that have no rule for it leave no gap in the sentence.
+        address=f" {target.address}" if target.address else "",
+        language=language,
+        only_quoted=target.only_quoted(language),
+        schema=TutorReply.model_json_schema(),
     )
     reply = complete(
         system,

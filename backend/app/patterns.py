@@ -1,4 +1,5 @@
-"""Sentence patterns, practised by saying in English a sentence shown in the learner's language."""
+"""Sentence patterns, practised by saying a sentence shown in the learner's language in the
+language being practised."""
 
 from dataclasses import asdict
 
@@ -8,21 +9,23 @@ from fastapi import APIRouter, HTTPException, Response
 from pydantic import BaseModel, Field, model_validator
 
 from .corrections import _words, keep_mistake
-from .db import get_connection
+from .db import current_language, get_connection
+from .languages import LEVELS, Pattern
 from .llm import LLMError, complete, parse_json_reply
-from .pattern_list import LEVELS, PATTERNS, Pattern
 from .settings import feedback_language
 
 router = APIRouter(prefix="/api")
 
 # How many sentences one round of a pattern has.
 ROUND = 5
-BY_ID = {pattern.id: pattern for pattern in PATTERNS}
 # The level the learner's own patterns are listed under, and what their ids start with.
 OWN_LEVEL = "Yours"
 OWN_PREFIX = "own-"
 
-__all__ = ["LEVELS", "PATTERNS", "router"]
+
+def _built_in() -> dict[str, Pattern]:
+    """The built-in patterns of the language being practised, by id."""
+    return {pattern.id: pattern for pattern in current_language().patterns}
 
 
 class PatternStatus(BaseModel):
@@ -58,7 +61,7 @@ class WrittenPattern(BaseModel):
 
 class Exercise(BaseModel):
     prompt: str = Field(min_length=1, description="The sentence to say, in the learner's language.")
-    answer: str = Field(min_length=1, description="The sentence in English, using the pattern.")
+    answer: str = Field(min_length=1, description="The sentence in the language being practised, using the pattern.")
 
 
 class Exercises(BaseModel):
@@ -74,7 +77,7 @@ class Attempt(BaseModel):
 
 class Verdict(BaseModel):
     correct: bool
-    improved: str = Field(min_length=1, description="The sentence as it should be said, in English.")
+    improved: str = Field(min_length=1, description="The sentence as it should be said, in the language being practised.")
     explanation: str | None = Field(default=None, description="What to change and why; null when correct.")
 
 
@@ -90,7 +93,7 @@ class Result(BaseModel):
 
 
 EXERCISES_PROMPT = """\
-You are an English teacher preparing a speaking drill for a non-native speaker whose own
+You are a teacher of {target} preparing a speaking drill for a non-native speaker whose own
 language is {language}. The drill practises one sentence pattern:
 
 Pattern: {pattern}
@@ -99,28 +102,29 @@ Example: {example}
 Level: {level}
 
 Write {count} different sentences that each need this pattern. The learner sees a sentence in
-{language} and says it in English.
+{language} and says it in {target}.
 - Everyday things a person might really say, each about a different situation and with a
   different subject or verb. Do not reuse the example.
 - Keep the vocabulary and the rest of the grammar at {level} or below, so that the pattern is
   the only hard part.
-- "answer" is the sentence in natural English, using the pattern. It is one sentence, short
+- "answer" is the sentence in natural {target}, using the pattern. It is one sentence, short
   enough to say in one breath.
 - "prompt" is the same sentence in natural {language}, as a native speaker would say it, not a
   word-for-word translation. {cue}
-- "note" says in one or two sentences of {language} when this pattern is used.
+- "note" says in one or two sentences when this pattern is used. Write it in {language}, the
+  learner's own language; {target} words may be quoted inside it.
 
 Reply with a single JSON object matching this schema, and nothing else:
 {schema}"""
 
-# With English as the learner's language there is nothing to translate from.
+# With the language being practised as the learner's own there is nothing to translate from.
 SAME_LANGUAGE_CUE = (
-    'Because that language is English, write "prompt" as a short instruction that describes what '
-    'to say without using the pattern\'s own words, such as "Say that you regret not leaving earlier."'
+    'Because that language is {target}, write "prompt" as a short instruction in {target} that describes '
+    'what to say without using the pattern\'s own words, such as "{example}"'
 )
 
 CHECK_PROMPT = """\
-You are an English teacher checking one sentence of a speaking drill. The learner, whose own
+You are a teacher of {target} checking one sentence of a speaking drill. The learner, whose own
 language is {language}, practises this sentence pattern:
 
 Pattern: {pattern}
@@ -135,27 +139,28 @@ a similar-sounding word would) as a mistake.
 correct: true when what the learner said means what the shown sentence means, uses the
 pattern, and has no mistake in grammar or word choice that a fluent speaker would notice. It
 does not have to match the model answer: other words and a different order are fine.
-improved: the sentence as it should be said, in English. Stay as close to the learner's own
+improved: the sentence as it should be said, in {target}. Stay as close to the learner's own
 words as a correct sentence allows; when it was correct, repeat what the learner said. When
 the learner said something that means something else than the shown sentence, give the model
 answer instead.
-explanation: when it was not correct, one or two sentences in {language} on what to change
-and why, talking about what to say, not how to write it; when the meaning was different, say
-so first. When it was correct, null.
+explanation: when it was not correct, one or two sentences on what to change and why, talking
+about what to say, not how to write it; when the meaning was different, say so first. When it
+was correct, null. Write it in {language}, the learner's own language, whatever language the
+sentence is in; {target} words may be quoted inside it. {only_quoted}
 
 Reply with a single JSON object matching this schema, and nothing else:
 {schema}"""
 
 
 PATTERN_PROMPT = """\
-You are an English teacher. A learner found a sentence in a video and marked the part of it
+You are a teacher of {target}. A learner found a sentence in a video and marked the part of it
 they want to be able to say themselves. Turn that part into a sentence pattern they can
 practise with other sentences.
 
 pattern: the pattern as a short formula, as a grammar book writes one: keep the words that
 make the pattern, and put a slot where other words can go, named by what goes there, such as
-"+ verb", "+ -ing", "+ past participle", "+ noun", or "…". For example, from "I should have
-left earlier" with "should have left" marked: "should have + past participle". At most 12 words.
+{slots}. For example,
+{example}. Name the slots in English. At most 12 words.
 use: what the pattern is used for, in plain English, starting with a verb in -ing, such as
 "Regretting something in the past". At most 12 words.
 
@@ -176,11 +181,12 @@ def _own(row: sqlite3.Row) -> tuple[Pattern, dict]:
 
 def _find(conn: sqlite3.Connection, pattern_id: str) -> tuple[Pattern, dict]:
     """A pattern by its id, built in or the learner's own, with the fields only an own one has."""
-    if pattern_id in BY_ID:
-        return BY_ID[pattern_id], {}
+    if found := _built_in().get(pattern_id):
+        return found, {}
     number = pattern_id.removeprefix(OWN_PREFIX)
     if pattern_id.startswith(OWN_PREFIX) and number.isdecimal():
-        if row := conn.execute(f"{OWN_SQL} WHERE o.id = ?", (int(number),)).fetchone():
+        own = conn.execute(f"{OWN_SQL} WHERE o.id = ? AND o.target = ?", (int(number), current_language().code))
+        if row := own.fetchone():
             return _own(row)
     raise HTTPException(status_code=404, detail="Pattern not found")
 
@@ -203,14 +209,17 @@ def _status(pattern: Pattern, progress: dict | None) -> PatternStatus:
 
 @router.get("/patterns", response_model=list[PatternStatus])
 def list_patterns() -> list[PatternStatus]:
-    """Every pattern, level by level, with the learner's progress on it."""
+    """Every pattern of the language being practised, level by level, with the learner's
+    progress on it."""
+    language = current_language()
     with get_connection() as conn:
         rows = conn.execute(
-            "SELECT pattern_id, sessions, last_correct, last_total, practiced_at FROM pattern_progress"
+            "SELECT pattern_id, sessions, last_correct, last_total, practiced_at FROM pattern_progress WHERE target = ?",
+            (language.code,),
         ).fetchall()
-        own = [_own(row) for row in conn.execute(f"{OWN_SQL} ORDER BY o.id")]
+        own = [_own(row) for row in conn.execute(f"{OWN_SQL} WHERE o.target = ? ORDER BY o.id", (language.code,))]
     progress = {row["pattern_id"]: {key: row[key] for key in row.keys() if key != "pattern_id"} for row in rows}
-    return [_status(pattern, progress.get(pattern.id)) for pattern in PATTERNS] + [
+    return [_status(pattern, progress.get(pattern.id)) for pattern in language.patterns] + [
         _status(pattern, {**(progress.get(pattern.id) or {}), **extra}) for pattern, extra in own
     ]
 
@@ -219,6 +228,7 @@ def list_patterns() -> list[PatternStatus]:
 def add_pattern(body: NewPattern, response: Response) -> PatternStatus:
     """Make a pattern of the learner's own from the marked part of a sentence of a saved video."""
     phrase = " ".join(body.phrase.split())
+    target = current_language()
     with get_connection() as conn:
         line = conn.execute("SELECT text FROM video_lines WHERE id = ?", (body.line,)).fetchone()
     if line is None:
@@ -227,7 +237,12 @@ def add_pattern(body: NewPattern, response: Response) -> PatternStatus:
         raise HTTPException(status_code=422, detail="Mark a part of the sentence itself.")
     try:
         reply = complete(
-            PATTERN_PROMPT.format(schema=WrittenPattern.model_json_schema()),
+            PATTERN_PROMPT.format(
+                target=target.name,
+                slots=target.pattern_slots,
+                example=target.pattern_example,
+                schema=WrittenPattern.model_json_schema(),
+            ),
             f"Sentence: {line['text']}\nMarked part: {phrase}",
             max_tokens=2000,
             response_format={"type": "json_object"},
@@ -238,14 +253,16 @@ def add_pattern(body: NewPattern, response: Response) -> PatternStatus:
         raise HTTPException(status_code=502, detail=f"Could not make the pattern: {e}") from e
     formula = " ".join(written.pattern.split())
     with get_connection() as conn:
-        known = conn.execute("SELECT id FROM own_patterns WHERE pattern = ?", (formula,)).fetchone()
+        known = conn.execute(
+            "SELECT id FROM own_patterns WHERE target = ? AND pattern = ?", (target.code, formula)
+        ).fetchone()
         if known:
             response.status_code = 200
             number = known["id"]
         else:
             number = conn.execute(
-                "INSERT INTO own_patterns (pattern, use, example, line) VALUES (?, ?, ?, ?)",
-                (formula, written.use.strip(), line["text"], body.line),
+                "INSERT INTO own_patterns (target, pattern, use, example, line) VALUES (?, ?, ?, ?, ?)",
+                (target.code, formula, written.use.strip(), line["text"], body.line),
             ).lastrowid
         return _saved(conn, f"{OWN_PREFIX}{number}")
 
@@ -255,10 +272,12 @@ def delete_pattern(pattern_id: str) -> Response:
     """Remove a pattern of the learner's own, with its progress."""
     with get_connection() as conn:
         pattern, _ = _find(conn, pattern_id)
-        if pattern_id in BY_ID:
+        if pattern_id in _built_in():
             raise HTTPException(status_code=403, detail="A built-in pattern cannot be removed.")
         conn.execute("DELETE FROM own_patterns WHERE id = ?", (int(pattern_id.removeprefix(OWN_PREFIX)),))
-        conn.execute("DELETE FROM pattern_progress WHERE pattern_id = ?", (pattern_id,))
+        conn.execute(
+            "DELETE FROM pattern_progress WHERE target = ? AND pattern_id = ?", (current_language().code, pattern_id)
+        )
     return Response(status_code=204)
 
 
@@ -266,8 +285,9 @@ def _saved(conn: sqlite3.Connection, pattern_id: str) -> PatternStatus:
     """A pattern with the learner's progress on it."""
     pattern, extra = _find(conn, pattern_id)
     row = conn.execute(
-        "SELECT sessions, last_correct, last_total, practiced_at FROM pattern_progress WHERE pattern_id = ?",
-        (pattern_id,),
+        "SELECT sessions, last_correct, last_total, practiced_at FROM pattern_progress"
+        " WHERE target = ? AND pattern_id = ?",
+        (current_language().code, pattern_id),
     ).fetchone()
     return _status(pattern, {**(dict(row) if row else {}), **extra})
 
@@ -276,12 +296,14 @@ def _saved(conn: sqlite3.Connection, pattern_id: str) -> PatternStatus:
 def write_exercises(pattern_id: str) -> Exercises:
     """New sentences to say for one round of a pattern. They are not stored."""
     pattern = _pattern(pattern_id)
-    language = feedback_language()
+    target, language = current_language(), feedback_language()
+    cue = SAME_LANGUAGE_CUE.format(target=target.name, example=target.instruction_example)
     system = EXERCISES_PROMPT.format(
         **_for_prompt(pattern),
+        target=target.name,
         language=language,
         count=ROUND,
-        cue=SAME_LANGUAGE_CUE if language.strip().lower() == "english" else "",
+        cue=cue if target.is_named(language) else "",
         schema=Exercises.model_json_schema(),
     )
     try:
@@ -300,8 +322,13 @@ def check(pattern_id: str, body: Attempt) -> Verdict:
     if _words(body.said) == _words(body.answer):
         # The model answer itself, as heard: nothing to judge.
         return Verdict(correct=True, improved=body.answer)
+    target, language = current_language(), feedback_language()
     system = CHECK_PROMPT.format(
-        **_for_prompt(pattern), language=feedback_language(), schema=Verdict.model_json_schema()
+        **_for_prompt(pattern),
+        target=target.name,
+        language=language,
+        only_quoted=target.only_quoted(language),
+        schema=Verdict.model_json_schema(),
     )
     user = f"Shown to the learner: {body.prompt}\nModel answer: {body.answer}\nThe learner said: {body.said}"
     try:
@@ -326,12 +353,12 @@ def save_result(pattern_id: str, body: Result) -> PatternStatus:
     with get_connection() as conn:
         conn.execute(
             """
-            INSERT INTO pattern_progress (pattern_id, sessions, last_correct, last_total, practiced_at)
-            VALUES (?, 1, ?, ?, strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))
-            ON CONFLICT (pattern_id) DO UPDATE SET
+            INSERT INTO pattern_progress (target, pattern_id, sessions, last_correct, last_total, practiced_at)
+            VALUES (?, ?, 1, ?, ?, strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))
+            ON CONFLICT (target, pattern_id) DO UPDATE SET
                 sessions = sessions + 1, last_correct = excluded.last_correct,
                 last_total = excluded.last_total, practiced_at = excluded.practiced_at
             """,
-            (pattern_id, body.correct, body.total),
+            (current_language().code, pattern_id, body.correct, body.total),
         )
         return _saved(conn, pattern_id)

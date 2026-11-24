@@ -43,7 +43,7 @@ export interface Review {
   strengths: string[]
   focus: string[]
   /** Expressions that would have fit the conversation, with what they mean. */
-  phrases: { english: string; note: string }[]
+  phrases: { expression: string; note: string }[]
 }
 
 /** A line of a saved conversation, as the backend returns it. */
@@ -57,6 +57,8 @@ export interface SavedMessage {
 /** A saved conversation with all its lines. */
 export interface SavedConversation {
   id: number
+  /** The code of the language it is held in ("en", "de"). */
+  language: string
   /** Null once the topic it was held on has been removed. */
   topic_id: number | null
   title: string
@@ -72,6 +74,7 @@ export interface SavedConversation {
 /** A saved conversation in the history list. */
 export interface ConversationSummary {
   id: number
+  language: string
   topic_id: number | null
   title: string
   started_at: string
@@ -93,7 +96,7 @@ export interface SavedCorrection {
   /** For a sentence of a video not said right after it: where it stands in the video. */
   position: number | null
   title: string
-  /** For a pattern mistake: the sentence that was to be said in English. */
+  /** For a pattern mistake: the sentence that was to be said in the language practised. */
   prompt: string | null
   original: string
   improved: string
@@ -123,7 +126,7 @@ export interface PatternStatus {
   position: number | null
 }
 
-/** One sentence of a round: shown in the learner's language, said in English. */
+/** One sentence of a round: shown in the learner's language, said in the language practised. */
 export interface Exercise {
   prompt: string
   answer: string
@@ -178,7 +181,7 @@ export interface VideoSummary {
   generated: boolean
   added_at: string
   sentences: number
-  /** The CEFR level of its English, A1 to C2; null while it has none. */
+  /** The CEFR level of what is said in it, A1 to C2; null while it has none. */
   level: string | null
 }
 
@@ -232,5 +235,21 @@ export interface LLMSettings {
 export interface VoiceStatus {
   id: string
   label: string
+  /** Bytes downloaded the first time it is chosen, and whether that has happened. */
+  size: number
+  downloaded: boolean
+  chosen: boolean
+}
+
+/** A language the app teaches. */
+export interface LearningLanguage {
+  /** What it is kept under ("de"), its name in English ("German"), and its own ("Deutsch"). */
+  code: string
+  name: string
+  native: string
+  /** The browser voice that reads its lines when the app's own voice cannot. */
+  locale: string
+  /** A line to hear a voice with. */
+  sample: string
   chosen: boolean
 }

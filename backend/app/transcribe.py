@@ -10,11 +10,10 @@ from faster_whisper import WhisperModel
 from faster_whisper.utils import _MODELS, download_model
 from huggingface_hub import HfApi
 
+from .db import current_language
 from .downloads import Download
 from .paths import DATA_DIR
 
-# English-only model, downloaded from Hugging Face on first use (~480 MB for small.en).
-DEFAULT_MODEL = "small.en"
 # Kept with the app's other files instead of Hugging Face's shared cache in the home folder,
 # so that removing the data folder removes the model too.
 MODEL_DIR = DATA_DIR / "whisper"
@@ -22,7 +21,9 @@ MODEL_DIR = DATA_DIR / "whisper"
 UNCLEAR_BELOW = 0.5
 MAX_UNCLEAR_WORDS = 8
 
+# The loaded model and its name: another language may need another model.
 _model: WhisperModel | None = None
+_loaded: str | None = None
 _lock = threading.Lock()
 
 
@@ -37,7 +38,14 @@ class Transcript:
 
 
 def _model_name() -> str:
-    return os.environ.get("WHISPER_MODEL", "").strip() or DEFAULT_MODEL
+    """The model that hears the language being practised, downloaded from Hugging Face on first
+    use (~480 MB for the small ones): WHISPER_MODEL, else the language's own. An English-only
+    model (".en") from the environment is used for English alone."""
+    language = current_language()
+    chosen = os.environ.get("WHISPER_MODEL", "").strip()
+    if chosen.endswith(".en") and language.code != "en":
+        chosen = ""
+    return chosen or language.whisper_model
 
 
 def _is_downloaded() -> bool:
@@ -50,14 +58,22 @@ def _is_downloaded() -> bool:
 
 
 def _downloaded_bytes() -> int:
-    """Bytes of model files on disk, counting files that are still being downloaded."""
-    return sum(
-        os.path.getsize(os.path.join(folder, name))
-        for folder, _, names in os.walk(MODEL_DIR)
-        for name in names
-        # The cache also holds links to the same files; count each file once.
-        if not os.path.islink(os.path.join(folder, name))
-    )
+    """Bytes on disk of the model that hears the language being practised, counting files that
+    are still being downloaded. The models of the other languages are in the same folder and
+    are left out."""
+    name = _model_name()
+    folder = MODEL_DIR / f"models--{_MODELS.get(name, name).replace('/', '--')}"
+    # A model's files are links to where Hugging Face keeps them, in the model's own folder or
+    # in one shared by all models; each file is followed to where it is and counted once.
+    files = {os.path.realpath(os.path.join(at, file)) for at, _, names in os.walk(folder) for file in names}
+    # A file on its way is not linked to yet. Only one model is downloaded at a time.
+    files |= {
+        os.path.realpath(os.path.join(at, file))
+        for at, _, names in os.walk(MODEL_DIR)
+        for file in names
+        if file.endswith(".incomplete")
+    }
+    return sum(os.path.getsize(file) for file in files if os.path.isfile(file))
 
 
 def _download() -> None:
@@ -82,23 +98,27 @@ model_download = Download(
 
 
 def _get_model() -> WhisperModel:
-    global _model
+    global _model, _loaded
     # Downloading can take minutes, so it happens outside the lock that guards the model.
     model_download.wait()
+    name = _model_name()
     with _lock:
-        if _model is None:
-            _model = WhisperModel(_model_name(), device="cpu", compute_type="int8", download_root=str(MODEL_DIR))
+        if _model is None or _loaded != name:
+            # One model in memory at a time: the one of the language practised before is let go.
+            _model = WhisperModel(name, device="cpu", compute_type="int8", download_root=str(MODEL_DIR))
+            _loaded = name
         return _model
 
 
 def transcribe(audio: BinaryIO) -> Transcript:
     """Transcribe an audio file and measure how clearly it was spoken."""
+    language = current_language().code
     model = _get_model()
     # The model is not safe for concurrent use; requests are rare, so run one at a time.
     with _lock:
         # vad_filter drops silence, which otherwise makes Whisper invent text.
         segments, _ = model.transcribe(
-            audio, language="en", vad_filter=True, word_timestamps=True
+            audio, language=language, vad_filter=True, word_timestamps=True
         )
         segments = list(segments)
 

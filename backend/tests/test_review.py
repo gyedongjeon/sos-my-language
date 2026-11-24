@@ -1,21 +1,21 @@
 """A conversation can be wrapped up with a review of how it went."""
 
 import json
-import sqlite3
 
 import pytest
 
 from app import conversation, review
-from app.db import DB_PATH, SEED_TOPICS, get_connection, init_db
+from app.db import SEED_TOPICS
+from app.languages.english import ENGLISH
 from app.llm import LLMError
 
-OPENER = SEED_TOPICS[0][2]
+OPENER = ENGLISH.openers[SEED_TOPICS[0][0]]
 CORRECTION = {"original": "I go", "improved": "I went", "explanation": "Past tense."}
 REVIEW = {
     "summary": "You kept the chat going and answered every question.",
     "strengths": ["You answered in full sentences."],
     "focus": ["Use the past tense for things that already happened."],
-    "phrases": [{"english": "I ended up going to the beach.", "note": "For a plan that changed."}],
+    "phrases": [{"expression": "I ended up going to the beach.", "note": "For a plan that changed."}],
 }
 
 
@@ -103,11 +103,3 @@ def test_saying_more_drops_the_review_because_it_no_longer_covers_the_conversati
     client.post(f"/api/conversations/{conversation_id}/review")
     client.post(f"/api/conversations/{conversation_id}/messages", json={"text": "With my friend."})
     assert client.get(f"/api/conversations/{conversation_id}").json()["review"] is None
-
-
-def test_a_database_from_before_reviews_gains_the_column(client):
-    with get_connection() as conn:
-        conn.execute("ALTER TABLE conversations DROP COLUMN review")
-    init_db()
-    with get_connection() as conn:
-        assert "review" in [column[1] for column in conn.execute("PRAGMA table_info(conversations)")]

@@ -1,4 +1,5 @@
 import { onBeforeUnmount, ref, type Ref } from 'vue'
+import { t } from '../i18n'
 
 // The parts of YouTube's IFrame Player API that are used here.
 interface Player {
@@ -47,7 +48,7 @@ function loadApi(): Promise<void> {
     script.src = 'https://www.youtube.com/iframe_api'
     script.onerror = () => {
       api = null
-      reject(new Error('YouTube could not be reached.'))
+      reject(new Error(t('video.unreachable')))
     }
     document.head.append(script)
   })
@@ -112,8 +113,8 @@ export function useYouTubePlayer(element: Ref<HTMLElement | null>) {
         },
         onError: ({ data }) => {
           error.value = NOT_EMBEDDABLE.includes(data)
-            ? 'The owner of this video does not allow it to be played outside YouTube.'
-            : `YouTube could not play this video (error ${data}).`
+            ? t('video.notEmbeddable')
+            : t('video.cannotPlay', { code: data })
         },
       },
     })

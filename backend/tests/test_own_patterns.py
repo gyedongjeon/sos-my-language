@@ -6,7 +6,7 @@ import pytest
 
 from app import patterns, videos
 from app.llm import LLMError
-from app.patterns import PATTERNS
+from app.languages.english import ENGLISH
 from app.videos import Snippet
 
 SENTENCE = "This is the closest I've ever gotten to a college graduation."
@@ -44,7 +44,7 @@ def make(client, line: dict, phrase="the closest I've ever gotten to") -> dict:
 
 def test_built_in_patterns_are_not_the_learners_own(client):
     listed = client.get("/api/patterns").json()
-    assert len(listed) == len(PATTERNS)
+    assert len(listed) == len(ENGLISH.patterns)
     assert all(p["custom"] is False and p["video"] is None for p in listed)
 
 
@@ -63,7 +63,7 @@ def test_a_pattern_is_made_from_the_marked_part_of_a_sentence(client, line, mode
 def test_own_patterns_are_listed_after_the_built_in_ones(client, line, model):
     made = make(client, line)
     listed = client.get("/api/patterns").json()
-    assert len(listed) == len(PATTERNS) + 1 and listed[-1] == made
+    assert len(listed) == len(ENGLISH.patterns) + 1 and listed[-1] == made
 
 
 def test_the_marked_part_must_be_in_the_sentence(client, line, model):
@@ -80,7 +80,7 @@ def test_the_same_pattern_is_not_saved_twice(client, line, model):
     first = make(client, line)
     again = client.post("/api/patterns", json={"line": line["id"], "phrase": "the closest I've ever"})
     assert again.status_code == 200 and again.json() == first
-    assert len(client.get("/api/patterns").json()) == len(PATTERNS) + 1
+    assert len(client.get("/api/patterns").json()) == len(ENGLISH.patterns) + 1
 
 
 def test_nothing_is_saved_when_the_pattern_cannot_be_written(client, line, monkeypatch):
@@ -90,7 +90,7 @@ def test_nothing_is_saved_when_the_pattern_cannot_be_written(client, line, monke
     monkeypatch.setattr(patterns, "complete", fail)
     response = client.post("/api/patterns", json={"line": line["id"], "phrase": "the closest"})
     assert response.status_code == 502 and "not responding" in response.json()["detail"]
-    assert len(client.get("/api/patterns").json()) == len(PATTERNS)
+    assert len(client.get("/api/patterns").json()) == len(ENGLISH.patterns)
 
 
 def test_an_own_pattern_is_practised_like_any_other(client, line, model):
@@ -109,7 +109,7 @@ def test_an_own_pattern_can_be_deleted_with_its_progress(client, line, model):
     made = make(client, line)
     client.post(f"/api/patterns/{made['id']}/results", json={"correct": 1, "total": 1})
     assert client.delete(f"/api/patterns/{made['id']}").status_code == 204
-    assert len(client.get("/api/patterns").json()) == len(PATTERNS)
+    assert len(client.get("/api/patterns").json()) == len(ENGLISH.patterns)
     assert client.post(f"/api/patterns/{made['id']}/exercises").status_code == 404
     # A pattern made again starts from nothing.
     assert make(client, line)["sessions"] == 0

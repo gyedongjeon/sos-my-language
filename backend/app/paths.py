@@ -6,10 +6,10 @@ from pathlib import Path
 BACKEND_DIR = Path(__file__).resolve().parent.parent
 
 # Everything the app stores: the database, the downloaded speech models, and the voice cache.
-DATA_DIR = Path(os.environ.get("SOS_MY_ENGLISH_DATA_DIR") or BACKEND_DIR / "data")
+DATA_DIR = Path(os.environ.get("SOS_MY_LANGUAGE_DATA_DIR") or BACKEND_DIR / "data")
 
 # The built frontend (`npm run build`), served by the backend when it exists.
-FRONTEND_DIST = Path(os.environ.get("SOS_MY_ENGLISH_FRONTEND_DIST") or BACKEND_DIR.parent / "frontend" / "dist")
+FRONTEND_DIST = Path(os.environ.get("SOS_MY_LANGUAGE_FRONTEND_DIST") or BACKEND_DIR.parent / "frontend" / "dist")
 
 # Hugging Face's default (Xet) transfer first collects a large file in a cache of its own under
 # ~/.cache/huggingface. Plain downloads go straight into the folder they are asked to, which

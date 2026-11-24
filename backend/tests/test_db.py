@@ -23,4 +23,4 @@ def test_changes_are_saved_when_the_block_ends_and_dropped_when_it_fails():
         conn.execute("INSERT INTO settings (key, value) VALUES ('dropped', '1')")
         raise RuntimeError("Something went wrong.")
     with get_connection() as conn:
-        assert [row["key"] for row in conn.execute("SELECT key FROM settings")] == ["kept"]
+        assert [row["key"] for row in conn.execute("SELECT key FROM settings WHERE value = '1'")] == ["kept"]

@@ -5,6 +5,10 @@ import MorseSignal from '../components/MorseSignal.vue'
 import { startedOn } from '../history'
 import { ALL, useVideosStore } from '../stores/videos'
 import { clock } from '../video'
+import { useSettingsStore } from '../stores/settings'
+import { t, tc } from '../i18n'
+
+const settings = useSettingsStore()
 
 // The videos saved to study with, and the form that adds one from a YouTube link.
 const store = useVideosStore()
@@ -32,9 +36,9 @@ onMounted(() => store.load())
 
 <template>
   <main class="mx-auto max-w-3xl p-4 sm:p-6">
-    <h1 class="text-2xl font-semibold">Videos</h1>
+    <h1 class="text-2xl font-semibold">{{ t('nav.videos') }}</h1>
     <p class="text-sm text-base-content/70">
-      Paste a link to a YouTube video with English subtitles, then listen to it one sentence at a time.
+      {{ t('videos.intro', { language: settings.learningName }) }}
     </p>
 
     <form class="mt-4 flex flex-wrap gap-2" @submit.prevent="add">
@@ -44,17 +48,16 @@ onMounted(() => store.load())
         type="url"
         required
         placeholder="https://www.youtube.com/watch?v=…"
-        aria-label="Link to a YouTube video"
+        :aria-label="t('videos.link')"
       />
-      <button class="btn btn-primary" type="submit" :disabled="store.adding">Add the video</button>
+      <button class="btn btn-primary" type="submit" :disabled="store.adding">{{ t('videos.add') }}</button>
     </form>
     <p v-if="store.adding" class="mt-2 flex items-center gap-2 text-sm text-base-content/60">
-      <MorseSignal animated /> Getting the subtitles…
+      <MorseSignal animated /> {{ t('videos.getting') }}
     </p>
     <div v-if="store.addError" role="alert" class="alert alert-error alert-soft mt-3">{{ store.addError }}</div>
     <p class="mt-2 text-xs text-base-content/60">
-      The video is played by YouTube's own player and is not downloaded. Its subtitles are saved on this computer
-      only.
+      {{ t('videos.note') }}
     </p>
 
     <form v-if="store.videos.length" class="mt-6 flex flex-wrap gap-2" role="search" @submit.prevent="store.search(phrase)">
@@ -62,17 +65,18 @@ onMounted(() => store.load())
         v-model="phrase"
         class="input grow"
         type="search"
-        placeholder="Find a word or phrase in your videos"
-        aria-label="Find a word or phrase in your videos"
+        :placeholder="t('videos.find')"
+        :aria-label="t('videos.find')"
       />
-      <button class="btn" type="submit" :disabled="store.searching">Search</button>
+      <button class="btn" type="submit" :disabled="store.searching">{{ t('videos.search') }}</button>
     </form>
-    <section v-if="store.searched && !store.searching" class="mt-3" aria-label="Search results">
+    <section v-if="store.searched && !store.searching" class="mt-3" :aria-label="t('videos.results')">
       <p class="text-sm text-base-content/70">
-        <template v-if="store.hits.length">
-          {{ store.hits.length }} sentence{{ store.hits.length === 1 ? '' : 's' }} with “{{ store.searched }}”
-        </template>
-        <template v-else>No sentence with “{{ store.searched }}”.</template>
+        {{
+          store.hits.length
+            ? t('videos.hits', { n: store.hits.length, phrase: store.searched })
+            : t('videos.noHits', { phrase: store.searched })
+        }}
       </p>
       <ul class="mt-2 grid gap-2">
         <li v-for="hit in store.hits" :key="hit.id">
@@ -92,9 +96,9 @@ onMounted(() => store.load())
     </div>
     <template v-else>
       <div v-if="store.error" role="alert" class="alert alert-error alert-soft mt-4">{{ store.error }}</div>
-      <p v-if="!store.videos.length && !store.error" class="mt-6 text-base-content/70">No videos yet.</p>
+      <p v-if="!store.videos.length && !store.error" class="mt-6 text-base-content/70">{{ t('videos.none') }}</p>
 
-      <div v-if="store.levels.length" class="mt-4 flex flex-wrap gap-2" role="tablist" aria-label="Levels">
+      <div v-if="store.levels.length" class="mt-4 flex flex-wrap gap-2" role="tablist" :aria-label="t('common.levels')">
         <button
           v-for="level in [ALL, ...store.levels]"
           :key="level"
@@ -104,7 +108,7 @@ onMounted(() => store.load())
           :class="level === store.active ? 'btn-primary' : 'btn-ghost bg-base-100'"
           @click="store.level = level"
         >
-          {{ level }}
+          {{ tc(level) }}
         </button>
       </div>
 
@@ -124,17 +128,17 @@ onMounted(() => store.load())
                   <span v-if="v.level" class="badge badge-primary badge-soft badge-sm shrink-0">{{ v.level }}</span>
                 </h2>
                 <p class="text-sm text-base-content/60">
-                  <template v-if="v.channel">{{ v.channel }} · </template>{{ v.sentences }} sentences ·
+                  <template v-if="v.channel">{{ v.channel }} · </template>{{ t('common.sentences', { n: v.sentences }) }} ·
                   {{ startedOn(v.added_at) }}
                 </p>
               </div>
             </RouterLink>
             <template v-if="confirming === v.id">
-              <button class="btn btn-error btn-sm" @click="remove(v.id)">Delete for good</button>
-              <button class="btn btn-ghost btn-sm" @click="confirming = null">Keep</button>
+              <button class="btn btn-error btn-sm" @click="remove(v.id)">{{ t('common.deleteForGood') }}</button>
+              <button class="btn btn-ghost btn-sm" @click="confirming = null">{{ t('common.keep') }}</button>
             </template>
-            <button v-else class="btn btn-ghost btn-sm" :aria-label="`Delete the video ${v.title}`" @click="confirming = v.id">
-              Delete
+            <button v-else class="btn btn-ghost btn-sm" :aria-label="t('videos.delete', { title: v.title })" @click="confirming = v.id">
+              {{ t('common.delete') }}
             </button>
           </div>
         </li>

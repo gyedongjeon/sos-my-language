@@ -8,7 +8,7 @@ root="$(cd "$(dirname "$0")/../.." && pwd)"
 work="$(mktemp -d)"
 port=8765
 
-export SOS_MY_ENGLISH_DATA_DIR="$work/data"
+export SOS_MY_LANGUAGE_DATA_DIR="$work/data"
 export UV_PROJECT_ENVIRONMENT="$work/venv"
 export PYTHONDONTWRITEBYTECODE=1
 

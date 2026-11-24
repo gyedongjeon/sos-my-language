@@ -8,6 +8,10 @@ import ReviewCard from '../components/ReviewCard.vue'
 import { useSpeech } from '../composables/useSpeech'
 import { fromSaved, startedOn } from '../history'
 import type { Review, SavedConversation } from '../types'
+import { useSettingsStore } from '../stores/settings'
+import { t, tc } from '../i18n'
+
+const settings = useSettingsStore()
 
 // A saved conversation, to read and listen to again.
 const props = defineProps<{ id: number }>()
@@ -29,7 +33,7 @@ async function summarize() {
   try {
     reviewed.review = await api<Review>(`/conversations/${reviewed.id}/review`, { method: 'POST' })
   } catch (e) {
-    reviewError.value = `Could not write the summary: ${(e as Error).message}`
+    reviewError.value = t('practice.summaryFailed', { error: (e as Error).message })
   } finally {
     reviewing.value = false
   }
@@ -41,7 +45,10 @@ async function load() {
   reviewError.value = ''
   conversation.value = null
   try {
-    conversation.value = await api<SavedConversation>(`/conversations/${props.id}`)
+    const found = await api<SavedConversation>(`/conversations/${props.id}`)
+    // Its lines are heard, and its summary written, in the language it was held in.
+    await settings.practise(found.language)
+    conversation.value = found
   } catch (e) {
     error.value = (e as Error).message
   } finally {
@@ -56,7 +63,7 @@ onBeforeUnmount(() => speech.stop())
 
 <template>
   <main class="mx-auto max-w-3xl p-4 sm:p-6">
-    <RouterLink class="link text-sm" :to="{ name: 'history' }">‹ History</RouterLink>
+    <RouterLink class="link text-sm" :to="{ name: 'history' }">{{ t('history.back') }}</RouterLink>
 
     <div v-if="loading" class="flex justify-center py-16">
       <MorseSignal animated />
@@ -65,39 +72,39 @@ onBeforeUnmount(() => speech.stop())
     <template v-else-if="conversation">
       <header class="mt-2 flex flex-wrap items-end justify-between gap-2">
         <div>
-          <h1 class="text-2xl font-semibold">{{ conversation.title }}</h1>
-          <p class="text-sm text-base-content/70">{{ startedOn(conversation.started_at) }} · {{ conversation.situation }}</p>
+          <h1 class="text-2xl font-semibold">{{ tc(conversation.title) }}</h1>
+          <p class="text-sm text-base-content/70">{{ startedOn(conversation.started_at) }} · {{ tc(conversation.situation) }}</p>
         </div>
         <RouterLink
           v-if="conversation.topic_id !== null"
           class="btn btn-primary btn-sm"
           :to="{ name: 'practice', params: { id: conversation.topic_id } }"
         >
-          Practice this topic again
+          {{ t('history.again') }}
         </RouterLink>
       </header>
 
       <details v-if="conversation.background" class="collapse-arrow collapse mt-3 border border-base-300 bg-base-100">
-        <summary class="collapse-title text-sm font-medium">What the text was about</summary>
+        <summary class="collapse-title text-sm font-medium">{{ t('practice.background') }}</summary>
         <p class="collapse-content text-sm text-base-content/80">{{ conversation.background }}</p>
       </details>
 
       <ReviewCard v-if="conversation.review" class="mt-4" :review="conversation.review" :messages="messages" @hear="speech.speak" />
       <div v-else class="mt-4 flex flex-wrap items-center gap-3">
-        <button class="btn btn-sm" :disabled="reviewing" @click="summarize">Summarize this conversation</button>
+        <button class="btn btn-sm" :disabled="reviewing" @click="summarize">{{ t('history.summarize') }}</button>
         <span v-if="reviewing" class="flex items-center gap-2 text-sm text-base-content/60">
-          <MorseSignal animated /> Writing your summary…
+          <MorseSignal animated /> {{ t('practice.writingSummary') }}
         </span>
       </div>
       <div v-if="reviewError" role="alert" class="alert alert-error alert-soft mt-3">{{ reviewError }}</div>
 
-      <section class="mt-4 flex flex-col gap-1" aria-label="Conversation">
+      <section class="mt-4 flex flex-col gap-1" :aria-label="t('practice.conversation')">
         <template v-for="(message, i) in messages" :key="i">
           <div class="chat" :class="message.role === 'tutor' ? 'chat-start' : 'chat-end'">
-            <div class="chat-header text-xs text-base-content/60">{{ message.role === 'tutor' ? 'Partner' : 'You' }}</div>
+            <div class="chat-header text-xs text-base-content/60">{{ message.role === 'tutor' ? t('common.partner') : t('common.you') }}</div>
             <div class="chat-bubble" :class="message.role === 'learner' ? 'chat-bubble-primary' : ''">{{ message.text }}</div>
             <div v-if="message.role === 'tutor'" class="chat-footer mt-1">
-              <button class="btn btn-xs" @click="speech.speak(message.text)">Hear it</button>
+              <button class="btn btn-xs" @click="speech.speak(message.text)">{{ t('common.hearIt') }}</button>
             </div>
             <DeliveryNote v-else-if="message.delivery" :delivery="message.delivery" />
           </div>
@@ -106,6 +113,6 @@ onBeforeUnmount(() => speech.stop())
       </section>
     </template>
 
-    <div v-else role="alert" class="alert alert-error mt-4">{{ error || 'This conversation could not be opened.' }}</div>
+    <div v-else role="alert" class="alert alert-error mt-4">{{ error || t('history.cannotOpen') }}</div>
   </main>
 </template>

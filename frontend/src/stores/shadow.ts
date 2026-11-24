@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { api } from '../api'
+import { t } from '../i18n'
 import type { SavedVideoLine, Shadowed } from '../types'
 
 /** Shadowing: saying a sentence of a video after hearing it, and seeing which words came through. */
@@ -21,7 +22,7 @@ export const useShadowStore = defineStore('shadow', {
         form.append('file', audio, 'speech.webm')
         const { text } = await api<{ text: string }>('/transcribe', { method: 'POST', body: form })
         if (!text) {
-          this.error = 'No speech was recognized. Try saying it again.'
+          this.error = t('common.noSpeech')
           return
         }
         const scored = await api<Shadowed>(`/video-lines/${line.id}/attempts`, { method: 'POST', json: { text } })

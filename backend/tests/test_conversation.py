@@ -6,9 +6,10 @@ import pytest
 
 from app import conversation
 from app.db import SEED_TOPICS
+from app.languages.english import ENGLISH
 from app.llm import LLMError
 
-OPENER = SEED_TOPICS[0][2]
+OPENER = ENGLISH.openers[SEED_TOPICS[0][0]]
 SAID = "I go to the beach yesterday."
 CORRECTION = {
     "original": "I go to the beach yesterday.",
