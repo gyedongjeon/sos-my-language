@@ -12,6 +12,7 @@ from .corrections import _words, keep_mistake
 from .db import current_language, get_connection
 from .languages import LEVELS, Pattern
 from .llm import LLMError, complete, parse_json_reply
+from .own_language import in_own_language
 from .settings import feedback_language
 
 router = APIRouter(prefix="/api")
@@ -341,6 +342,8 @@ def check(pattern_id: str, body: Attempt) -> Verdict:
     if verdict.correct:
         verdict.explanation = None
     else:
+        if verdict.explanation:
+            verdict.explanation = in_own_language(verdict.explanation, language)
         # Kept with the corrections, to be heard and said again later.
         keep_mistake(pattern.id, pattern.pattern, body.prompt, body.said, verdict.improved, verdict.explanation or "")
     return verdict

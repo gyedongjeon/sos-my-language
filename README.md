@@ -148,6 +148,12 @@ language they are shown in English, while the LLM still explains in the language
   key, ...), which are in English; the dialogs of the desktop app (updates, the microphone);
   topics and patterns you made yourself, which stay as you or the LLM wrote them.
 - The situation of a built-in topic is sent to the LLM in English whatever is shown.
+- After lines in the language practised, the LLM sometimes explains a correction in that
+  language instead of yours (about one in ten with German and a small model). An explanation of a
+  correction or of a pattern sentence is therefore checked by its letters, and one that is not
+  in your language is sent back once to be translated. This works where your language is written
+  differently from the one practised (Korean, Japanese, Chinese, Russian, Ukrainian, Thai, Hindi,
+  Bengali); between two languages in Latin letters it cannot be told and is left to the prompt.
 
 To add a language for the pages, see [Adding a language for the pages](#adding-a-language-for-the-pages).
 
