@@ -245,7 +245,7 @@ const ko: Record<keyof typeof en, string> = {
   'settings.yourLanguage': '내 언어',
   'settings.yourLanguageBody': '화면과 교정 설명이 이 언어로 나옵니다. 대화와 고친 문장은 {language} 그대로입니다.',
   'settings.yourLanguageNote':
-    '처음에는 브라우저 언어로 정해지고, 고르는 즉시 저장됩니다. 화면은 아직 영어와 한국어만 있어서, 다른 언어를 고르면 화면은 영어로 나오고 교정 설명은 고른 언어로 나옵니다.',
+    '처음에는 브라우저 언어로 정해지고, 고르는 즉시 저장됩니다. 화면의 번역은 대부분 AI가 했고 원어민 검수를 거치지 않아 조금 어색한 문구가 있을 수 있습니다.',
   'settings.voiceBody':
     '상대가 {language}로 말할 때 쓰는 목소리입니다. 모든 목소리는 이 컴퓨터에서 실행되며, 아직 없는 목소리는 처음 고를 때 내려받습니다.',
   'settings.voice': '목소리',

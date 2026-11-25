@@ -29,7 +29,7 @@ It brings together [SOS My English](https://github.com/gyedongjeon/sos-my-englis
 - **Your own topics**: add the situations you need (a job interview, renting a car, a call with a client) next to the built-in ones.
 - **Practise your corrections**: every fix is collected on the Corrections page, where you say the better sentence aloud until it comes out right.
 - **History**: every conversation is saved as you have it, with its corrections, so you can read it and hear it again.
-- **In your language**: corrections are explained in Korean, Japanese, Chinese, Spanish, and more, while the conversation stays in the language you practise. The pages themselves (menus, buttons, the built-in topics, what each pattern is for) are shown in your language too: in English and Korean so far, and in English for any other language.
+- **In your language**: corrections are explained in Korean, Japanese, Chinese, Spanish, and more, while the conversation stays in the language you practise. The pages themselves (menus, buttons, the built-in topics, what each pattern is for) are shown in your language too. Outside English and Korean they were translated by AI and have not been checked by a native speaker.
 - **Topics from what you read**: paste a link to an article or a speech, or its text, and get a topic to discuss it, with a short summary to talk from.
 - **Private by default**: speech-to-text and your partner's voice run locally, and your data stays on your computer. Only the text of the conversation, and a text or page you make a topic from, goes to the LLM provider you choose, with your own API key. Videos are streamed from YouTube; a part of a video's subtitles is sent to estimate its level and to find videos like it, all of them when they have no punctuation, and a sentence you make a pattern from. Turning on a video's translation sends all its subtitles.
 
@@ -139,8 +139,9 @@ To add a language, see [Adding a language](#adding-a-language).
 ### Your language
 "Your language" under Settings is the language you read: corrections, reviews, pattern notes,
 and translations of a video are written in it by the LLM, and the pages are shown in it. It
-starts from the browser's language. The pages are written in English and Korean; with any other
-language they are shown in English, while the LLM still explains in the language chosen.
+starts from the browser's language. The pages are written in every language that can be chosen.
+English and Korean were written by hand; the others were translated by AI and have not been
+checked by a native speaker, so a text may read a little oddly (corrections are welcome).
 
 - What is shown in your language: menus, buttons, and notes; the built-in topics' titles and
   situations and the categories; what each built-in pattern is for; what is said of a voice.
@@ -397,17 +398,22 @@ each row in the database says which language it belongs to (the `target` column)
 language starts empty next to the others.
 
 ## Adding a language for the pages
-The texts of the pages are in `frontend/src/i18n/`: `en.ts` has every text by a key, `ko.ts` the
-same keys in Korean, and `content.ko.json` the built-in topics, categories, pattern notes, and
-voice descriptions by their English text (the backend keeps those in English).
+The texts of the pages are in `frontend/src/i18n/`: `en.ts` has every text by a key, a file for
+each other language (`ko.ts`, `ja.ts`, `zh-Hans.ts`, ...) the same keys in that language, and
+`content.<language>.json` the built-in topics, categories, pattern notes, and voice descriptions
+by their English text (the backend keeps those in English). Every language of `LANGUAGES` in
+`frontend/src/stores/settings.ts` has both files.
 
 1. Copy `ko.ts` and `content.ko.json` to files for the new language and translate the values.
    `{name}` is filled in and must be kept; a text may be written as `one | many` where the
-   language tells them apart.
-2. List both in `frontend/src/i18n/index.ts`, under the language's name in `LANGUAGES` of
-   `frontend/src/stores/settings.ts` (for example `Japanese`).
-3. Run the tests. TypeScript refuses a file that lacks a key; `frontend/src/i18n/index.test.ts`
-   checks the names to fill in; `backend/tests/test_page_texts.py` checks that every built-in
+   language tells them apart, and is worded to fit any number where it has more forms than two
+   ("Sentences: {n}"). `{language}` is filled with the language's name as `lang.*` has it, so
+   word the sentence to take that one form.
+2. Add the language to `LANGUAGES` of `frontend/src/stores/settings.ts` if it is not there, and
+   list both files in `frontend/src/i18n/index.ts` under that name (for example `Japanese`).
+3. Run the tests. TypeScript refuses a file that lacks a key; `frontend/src/i18n/files.test.ts`
+   checks each file for the names to fill in and `index.test.ts` that every language of
+   `LANGUAGES` has its pages; `backend/tests/test_page_texts.py` checks that every built-in
    text of the backend has its entry in each `content.<language>.json`.
 
 A page must not contain a fixed text: use `t('key')` for a text of the pages and `tc(text)` for a

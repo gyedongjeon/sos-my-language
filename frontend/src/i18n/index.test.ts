@@ -1,9 +1,7 @@
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it } from 'vitest'
-import { useSettingsStore } from '../stores/settings'
-import en from './en'
+import { LANGUAGES, useSettingsStore } from '../stores/settings'
 import { languageName, modelName, PAGE_LANGUAGES, t, tc, voiceLabel } from './index'
-import ko from './ko'
 
 beforeEach(() => setActivePinia(createPinia()))
 
@@ -19,10 +17,17 @@ describe('the texts of the pages', () => {
     expect(t('nav.history')).toBe('기록')
   })
 
-  it('are in English for a language the pages are not written in', () => {
+  it("are written in every language a learner's own can be", () => {
+    expect(PAGE_LANGUAGES).toEqual(LANGUAGES.map((l) => l.name))
     yours('Japanese')
-    expect(PAGE_LANGUAGES).not.toContain('Japanese')
+    expect(t('nav.history')).not.toBe('History')
+    expect(tc('Small talk')).not.toBe('Small talk')
+  })
+
+  it('are in English for a language the pages are not written in', () => {
+    yours('Esperanto')
     expect(t('nav.history')).toBe('History')
+    expect(tc('Small talk')).toBe('Small talk')
   })
 
   it('have their names filled in', () => {
@@ -47,15 +52,6 @@ describe('the texts of the pages', () => {
     expect(modelName('speech-to-text', 'Speech recognition')).toBe('음성 인식')
     // One the pages do not know yet keeps the name the backend gave it.
     expect(languageName('es', 'Spanish')).toBe('Spanish')
-  })
-
-  it('have every text in Korean, with the same names to fill in', () => {
-    const names = (text: string) => [...text.matchAll(/\{(\w+)\}/g)].map((m) => m[1]).sort()
-    expect(Object.keys(ko).sort()).toEqual(Object.keys(en).sort())
-    for (const key of Object.keys(en) as (keyof typeof en)[]) {
-      expect(ko[key].trim(), key).not.toBe('')
-      expect(new Set(names(ko[key])), key).toEqual(new Set(names(en[key])))
-    }
   })
 })
 
