@@ -259,6 +259,11 @@ const hi: Record<keyof typeof en, string> = {
     'पेज इसी भाषा में दिखते हैं और सुधार इसी में समझाए जाते हैं। बातचीत और सुधारे गए वाक्य {language} में ही रहते हैं।',
   'settings.yourLanguageNote':
     'शुरुआत में आपके ब्राउज़र की भाषा चुनी जाती है। आप जैसे ही कोई भाषा चुनते हैं, वह सेव हो जाती है। पेजों की ज़्यादातर भाषाओं का अनुवाद AI ने किया है और किसी मूल भाषी ने उसे जांचा नहीं है, इसलिए कोई टेक्स्ट थोड़ा अटपटा लग सकता है।',
+  'settings.theme': 'थीम',
+  'settings.themeBody': 'सिस्टम के लाइट या डार्क मोड के अनुसार चलें, या पेज हमेशा लाइट या डार्क रखें।',
+  'settings.themeSystem': 'सिस्टम के अनुसार',
+  'settings.themeLight': 'लाइट',
+  'settings.themeDark': 'डार्क',
   'settings.voiceBody':
     'वह आवाज़ जिसमें आपका पार्टनर {language} बोलता है। हर आवाज़ इसी कंप्यूटर पर चलती है; जो आवाज़ अभी यहां नहीं है, वह पहली बार चुनने पर डाउनलोड हो जाती है।',
   'settings.voice': 'आवाज़',
@@ -291,6 +296,7 @@ const hi: Record<keyof typeof en, string> = {
   'settings.licenses': 'लाइसेंस के पूरे टेक्स्ट',
   'settings.languageFailed': 'भाषा नहीं बदली जा सकी: {error}',
   'settings.voiceFailed': 'आवाज़ नहीं बदली जा सकी: {error}',
+  'settings.themeFailed': 'थीम सहेजी नहीं जा सकी: {error}',
   'settings.yourLanguageFailed': 'भाषा सेव नहीं हो सकी: {error}',
 }
 

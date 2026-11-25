@@ -211,6 +211,9 @@ export interface VideoTranslation {
   missing: number
 }
 
+/** A theme of the pages by its daisyUI name; empty follows the system's light or dark mode. */
+export type Theme = '' | 'sos' | 'sos-night'
+
 export type Phase = 'idle' | 'transcribing' | 'thinking' | 'reviewing'
 
 /** A model the app downloads on first use, and how far its download is. */

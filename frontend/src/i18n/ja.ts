@@ -257,6 +257,11 @@ const ja: Record<keyof typeof en, string> = {
     '画面の表示と添削の説明がこの言語になります。会話と直した文は{language}のままです。',
   'settings.yourLanguageNote':
     '最初はブラウザーの言語に合わせて設定され、選ぶとすぐに保存されます。画面の翻訳の多くはAIによるもので、ネイティブスピーカーの確認を受けていないため、少し不自然な表現があるかもしれません。',
+  'settings.theme': 'テーマ',
+  'settings.themeBody': 'システムのライト・ダークモードに合わせるか、画面をライトかダークに固定します。',
+  'settings.themeSystem': 'システム設定に合わせる',
+  'settings.themeLight': 'ライト',
+  'settings.themeDark': 'ダーク',
   'settings.voiceBody':
     '相手が{language}を話すときの声です。どの声もこのコンピューター上で動きます。まだ入っていない声は、初めて選んだときにダウンロードされます。',
   'settings.voice': '声',
@@ -290,6 +295,7 @@ const ja: Record<keyof typeof en, string> = {
   'settings.licenses': 'ライセンス全文',
   'settings.languageFailed': '言語を変更できませんでした: {error}',
   'settings.voiceFailed': '声を変更できませんでした: {error}',
+  'settings.themeFailed': 'テーマを保存できませんでした: {error}',
   'settings.yourLanguageFailed': '言語を保存できませんでした: {error}',
 }
 

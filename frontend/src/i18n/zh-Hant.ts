@@ -251,6 +251,11 @@ const zhHant: Record<keyof typeof en, string> = {
     '頁面會以這個語言顯示,訂正的說明也是。對話和訂正後的句子仍然是{language}。',
   'settings.yourLanguageNote':
     '預設為瀏覽器的語言,選好後會立即儲存。大部分的頁面語言是由 AI 翻譯的,未經母語人士檢查,有些文字讀起來可能不太自然。',
+  'settings.theme': '主題',
+  'settings.themeBody': '跟隨系統的淺色或深色模式，或將頁面固定為淺色或深色。',
+  'settings.themeSystem': '跟隨系統',
+  'settings.themeLight': '淺色',
+  'settings.themeDark': '深色',
   'settings.voiceBody':
     '夥伴說{language}時使用的聲音。所有聲音都在這台電腦上執行;還沒下載的聲音會在第一次選用時下載。',
   'settings.voice': '聲音',
@@ -283,6 +288,7 @@ const zhHant: Record<keyof typeof en, string> = {
   'settings.licenses': '授權條款全文',
   'settings.languageFailed': '無法切換語言:{error}',
   'settings.voiceFailed': '無法更換聲音:{error}',
+  'settings.themeFailed': '無法儲存主題：{error}',
   'settings.yourLanguageFailed': '無法儲存語言:{error}',
 }
 

@@ -257,6 +257,11 @@ const th: Record<keyof typeof en, string> = {
     'หน้าต่าง ๆ ของแอปและคำอธิบายข้อแก้ไขจะแสดงเป็นภาษานี้ ส่วนบทสนทนาและประโยคที่แก้แล้วยังคงเป็น{language}',
   'settings.yourLanguageNote':
     'เริ่มต้นจากภาษาของเบราว์เซอร์ และบันทึกทันทีที่คุณเลือก ข้อความส่วนใหญ่ในแอปแปลด้วย AI และยังไม่ได้ให้เจ้าของภาษาตรวจ บางข้อความจึงอาจอ่านแล้วแปลกอยู่บ้าง',
+  'settings.theme': 'ธีม',
+  'settings.themeBody': 'ใช้โหมดสว่างหรือมืดตามระบบ หรือให้หน้าจอเป็นแบบสว่างหรือมืดเสมอ',
+  'settings.themeSystem': 'ตามระบบ',
+  'settings.themeLight': 'สว่าง',
+  'settings.themeDark': 'มืด',
   'settings.voiceBody':
     'เสียงที่คู่สนทนาใช้พูด{language} ทุกเสียงทำงานบนคอมพิวเตอร์เครื่องนี้ เสียงที่ยังไม่มีในเครื่องจะถูกดาวน์โหลดเมื่อคุณเลือกครั้งแรก',
   'settings.voice': 'เสียง',
@@ -289,6 +294,7 @@ const th: Record<keyof typeof en, string> = {
   'settings.licenses': 'ข้อความสัญญาอนุญาตฉบับเต็ม',
   'settings.languageFailed': 'เปลี่ยนภาษาไม่ได้: {error}',
   'settings.voiceFailed': 'เปลี่ยนเสียงไม่ได้: {error}',
+  'settings.themeFailed': 'บันทึกธีมไม่ได้: {error}',
   'settings.yourLanguageFailed': 'บันทึกภาษาไม่ได้: {error}',
 }
 

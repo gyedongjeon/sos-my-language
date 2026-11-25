@@ -1,4 +1,4 @@
-"""Feedback language and model settings."""
+"""Feedback language, theme, and model settings."""
 
 import importlib.util
 
@@ -10,17 +10,34 @@ from app.settings import Settings, feedback_language
 
 
 def test_feedback_language_is_unset_at_first(client):
-    assert client.get("/api/settings").json() == {"feedback_language": None}
+    assert client.get("/api/settings").json()["feedback_language"] is None
     assert feedback_language() == "English"
 
 
 def test_feedback_language_is_saved_and_cleared(client):
-    assert client.put("/api/settings", json={"feedback_language": " Korean "}).json() == {
-        "feedback_language": "Korean"
-    }
+    assert client.put("/api/settings", json={"feedback_language": " Korean "}).json()["feedback_language"] == "Korean"
     assert feedback_language() == "Korean"
     client.put("/api/settings", json={"feedback_language": None})
-    assert client.get("/api/settings").json() == {"feedback_language": None}
+    assert client.get("/api/settings").json()["feedback_language"] is None
+
+
+def test_the_theme_follows_the_system_at_first(client):
+    assert client.get("/api/settings").json()["theme"] == ""
+
+
+def test_a_chosen_theme_is_saved_and_leaves_the_language_alone(client):
+    client.put("/api/settings", json={"feedback_language": "Korean"})
+    assert client.put("/api/settings", json={"theme": "sos-night"}).json() == {
+        "feedback_language": "Korean",
+        "theme": "sos-night",
+    }
+    # Choosing the language again keeps the theme.
+    client.put("/api/settings", json={"feedback_language": "Japanese"})
+    assert client.get("/api/settings").json() == {"feedback_language": "Japanese", "theme": "sos-night"}
+
+
+def test_an_unknown_theme_is_refused(client):
+    assert client.put("/api/settings", json={"theme": "neon"}).status_code == 422
 
 
 def test_feedback_language_falls_back_to_the_environment(monkeypatch):

@@ -259,6 +259,11 @@ const es: Record<keyof typeof en, string> = {
     'Las páginas se muestran y las correcciones se explican en este idioma. La conversación y las frases corregidas siguen en {language}.',
   'settings.yourLanguageNote':
     'Al principio se usa el idioma de tu navegador. Se guarda en cuanto eliges uno. La mayoría de los idiomas de las páginas están traducidos con IA, sin revisión de un hablante nativo, así que algún texto puede sonar un poco raro.',
+  'settings.theme': 'Apariencia',
+  'settings.themeBody': 'Sigue el modo claro u oscuro del sistema, o deja las páginas siempre en claro u oscuro.',
+  'settings.themeSystem': 'Sistema',
+  'settings.themeLight': 'Claro',
+  'settings.themeDark': 'Oscuro',
   'settings.voiceBody':
     'La voz con la que tu interlocutor habla en {language}. Todas las voces funcionan en este equipo; la que aún no esté se descarga la primera vez que la eliges.',
   'settings.voice': 'Voz',
@@ -292,6 +297,7 @@ const es: Record<keyof typeof en, string> = {
   'settings.licenses': 'Textos completos de las licencias',
   'settings.languageFailed': 'No se pudo cambiar el idioma: {error}',
   'settings.voiceFailed': 'No se pudo cambiar la voz: {error}',
+  'settings.themeFailed': 'No se pudo guardar la apariencia: {error}',
   'settings.yourLanguageFailed': 'No se pudo guardar el idioma: {error}',
 }
 

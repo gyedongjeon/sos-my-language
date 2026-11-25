@@ -2,17 +2,20 @@ import { createPinia, setActivePinia } from 'pinia'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { useSettingsStore } from './settings'
 
-// A tiny backend: remembers the feedback language like the real `/api/settings`.
-function fakeBackend(saved: string | null, browserLanguage: string, failSaving = false) {
-  const state = { saved, puts: 0 }
+// A tiny backend: remembers the feedback language and the theme like the real `/api/settings`,
+// which saves only the settings it is sent.
+function fakeBackend(saved: string | null, browserLanguage: string, failSaving = false, theme = '') {
+  const state = { saved, theme, puts: 0 }
   vi.stubGlobal('navigator', { language: browserLanguage })
   vi.stubGlobal('fetch', async (_url: string, init?: RequestInit) => {
     if (init?.method === 'PUT') {
       state.puts++
       if (failSaving) return new Response(JSON.stringify({ detail: 'disk full' }), { status: 500 })
-      state.saved = JSON.parse(init.body as string).feedback_language
+      const sent = JSON.parse(init.body as string)
+      if ('feedback_language' in sent) state.saved = sent.feedback_language
+      if ('theme' in sent) state.theme = sent.theme
     }
-    return new Response(JSON.stringify({ feedback_language: state.saved }), { status: 200 })
+    return new Response(JSON.stringify({ feedback_language: state.saved, theme: state.theme }), { status: 200 })
   })
   return state
 }
@@ -58,6 +61,40 @@ describe('feedback language', () => {
     expect(store.feedbackLanguage).toBe('Korean')
     // Said in the learner's language, which is Korean here.
     expect(store.error).toBe('언어를 저장하지 못했습니다: disk full')
+  })
+})
+
+describe('theme', () => {
+  it('follows the system until one is chosen', async () => {
+    fakeBackend('Korean', 'ko-KR')
+    const store = useSettingsStore()
+    await store.load()
+    expect(store.theme).toBe('')
+  })
+
+  it('is the saved one', async () => {
+    fakeBackend('Korean', 'ko-KR', false, 'sos-night')
+    const store = useSettingsStore()
+    await store.load()
+    expect(store.theme).toBe('sos-night')
+  })
+
+  it('is saved on its own when chosen', async () => {
+    const backend = fakeBackend('Korean', 'ko-KR')
+    const store = useSettingsStore()
+    await store.load()
+    await store.setTheme('sos')
+    expect(store.theme).toBe('sos')
+    expect(backend).toMatchObject({ theme: 'sos', saved: 'Korean' })
+  })
+
+  it('keeps the previous theme and reports an error when saving fails', async () => {
+    fakeBackend('Korean', 'ko-KR', true)
+    const store = useSettingsStore()
+    await store.load()
+    await store.setTheme('sos-night')
+    expect(store.theme).toBe('')
+    expect(store.error).toBe('화면 테마를 저장하지 못했습니다: disk full')
   })
 })
 

@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { api } from '../api'
 import { languageName, t } from '../i18n'
-import type { LearningLanguage, LLMSettings, VoiceStatus } from '../types'
+import type { LearningLanguage, LLMSettings, Theme, VoiceStatus } from '../types'
 import { useModelsStore } from './models'
 
 /** The languages a learner's own can be: corrections are explained in it, and the pages are shown
@@ -40,6 +40,7 @@ function browserLanguage(): string {
 export const useSettingsStore = defineStore('settings', {
   state: () => ({
     feedbackLanguage: 'English' as string,
+    theme: '' as Theme,
     error: null as string | null,
     // null until loaded.
     llm: null as LLMSettings | null,
@@ -60,7 +61,8 @@ export const useSettingsStore = defineStore('settings', {
   actions: {
     async load() {
       try {
-        const saved = await api<{ feedback_language: string | null }>('/settings')
+        const saved = await api<{ feedback_language: string | null; theme: Theme }>('/settings')
+        this.theme = saved.theme
         if (saved.feedback_language) this.feedbackLanguage = saved.feedback_language
         // First visit: start from the browser's language; the user can change it any time.
         else await this.setFeedbackLanguage(browserLanguage())
@@ -119,6 +121,16 @@ export const useSettingsStore = defineStore('settings', {
       } catch (e) {
         this.error = t('settings.voiceFailed', { error: (e as Error).message })
         return false
+      }
+    },
+    /** Shows the pages in another theme, or in the system's light or dark mode for ''. */
+    async setTheme(theme: Theme) {
+      this.error = null
+      try {
+        await api('/settings', { method: 'PUT', json: { theme } })
+        this.theme = theme
+      } catch (e) {
+        this.error = t('settings.themeFailed', { error: (e as Error).message })
       }
     },
     async setFeedbackLanguage(language: string) {

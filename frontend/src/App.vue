@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref, watch } from 'vue'
+import { onMounted, ref, watch, watchEffect } from 'vue'
 import { useRouter } from 'vue-router'
 import BrandMark from './components/BrandMark.vue'
 import LanguagePicker from './components/LanguagePicker.vue'
@@ -11,6 +11,11 @@ import { useSettingsStore } from './stores/settings'
 const settings = useSettingsStore()
 const router = useRouter()
 const LINK = 'hover:bg-neutral-content/10'
+// The chosen theme, or none to let daisyUI follow the system's light or dark mode.
+watchEffect(() => {
+  if (settings.theme) document.documentElement.dataset.theme = settings.theme
+  else delete document.documentElement.dataset.theme
+})
 // Bumped when the learner goes over to another language from the navigation bar, so the page
 // that is open starts again with that language's topics, videos, or patterns.
 const restarted = ref(0)

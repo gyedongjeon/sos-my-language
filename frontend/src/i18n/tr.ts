@@ -259,6 +259,11 @@ const tr: Record<keyof typeof en, string> = {
     'Sayfalar bu dilde gösterilir, düzeltmeler de bu dilde açıklanır. Sohbet ve düzeltilmiş cümleler {language} kalır.',
   'settings.yourLanguageNote':
     'Başlangıçta tarayıcının dili kullanılır. Bir dil seçtiğin anda kaydedilir. Sayfaların çoğu dildeki çevirisi yapay zekâ ile yapıldı ve ana dili o dil olan biri tarafından kontrol edilmedi; bu yüzden bazı metinler biraz tuhaf gelebilir.',
+  'settings.theme': 'Görünüm',
+  'settings.themeBody': 'Sistemin açık veya koyu modunu izler ya da sayfaları hep açık veya koyu gösterir.',
+  'settings.themeSystem': 'Sistem',
+  'settings.themeLight': 'Açık',
+  'settings.themeDark': 'Koyu',
   'settings.voiceBody':
     'Partnerinin {language} konuşurken kullandığı ses. Bütün sesler bu bilgisayarda çalışır; henüz yüklü olmayan bir ses, onu ilk seçtiğinde indirilir.',
   'settings.voice': 'Ses',
@@ -292,6 +297,7 @@ const tr: Record<keyof typeof en, string> = {
   'settings.licenses': 'Lisans metinlerinin tamamı',
   'settings.languageFailed': 'Dil değiştirilemedi: {error}',
   'settings.voiceFailed': 'Ses değiştirilemedi: {error}',
+  'settings.themeFailed': 'Görünüm kaydedilemedi: {error}',
   'settings.yourLanguageFailed': 'Dil kaydedilemedi: {error}',
 }
 

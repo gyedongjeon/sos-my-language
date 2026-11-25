@@ -259,6 +259,11 @@ const bn: Record<keyof typeof en, string> = {
     'পাতাগুলো এই ভাষায় দেখানো হয়, সংশোধনের ব্যাখ্যাও এই ভাষায় দেওয়া হয়। কথোপকথন আর সংশোধিত বাক্য {language} ভাষাতেই থাকে।',
   'settings.yourLanguageNote':
     'শুরুতে আপনার ব্রাউজারের ভাষা ধরা হয়। একটি বেছে নিলেই তা সংরক্ষিত হয়ে যায়। পাতাগুলোর বেশির ভাগ ভাষার অনুবাদ AI দিয়ে করা, কোনো মাতৃভাষী তা যাচাই করেননি; তাই কোনো কোনো লেখা একটু অদ্ভুত লাগতে পারে।',
+  'settings.theme': 'থিম',
+  'settings.themeBody': 'সিস্টেমের লাইট বা ডার্ক মোড অনুসরণ করুন, অথবা পেজ সবসময় লাইট বা ডার্ক রাখুন।',
+  'settings.themeSystem': 'সিস্টেম অনুযায়ী',
+  'settings.themeLight': 'লাইট',
+  'settings.themeDark': 'ডার্ক',
   'settings.voiceBody':
     'সঙ্গী যে কণ্ঠে {language} ভাষায় কথা বলেন। সব কণ্ঠই এই কম্পিউটারে চলে; যেটি এখনো নেই, সেটি প্রথমবার বেছে নিলে ডাউনলোড হয়।',
   'settings.voice': 'কণ্ঠ',
@@ -291,6 +296,7 @@ const bn: Record<keyof typeof en, string> = {
   'settings.licenses': 'লাইসেন্সের পূর্ণ পাঠ',
   'settings.languageFailed': 'ভাষা বদলানো যায়নি: {error}',
   'settings.voiceFailed': 'কণ্ঠ বদলানো যায়নি: {error}',
+  'settings.themeFailed': 'থিম সংরক্ষণ করা যায়নি: {error}',
   'settings.yourLanguageFailed': 'ভাষা সংরক্ষণ করা যায়নি: {error}',
 }
 

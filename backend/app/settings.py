@@ -17,6 +17,8 @@ class Settings(BaseModel):
     # Language corrections are explained in, as an English name (e.g. "Korean").
     # None until the user (or the browser's language, on first visit) has chosen one.
     feedback_language: str | None = Field(default=None, min_length=1, max_length=40)
+    # The theme of the pages by its daisyUI name; empty follows the system's light or dark mode.
+    theme: Literal["", "sos", "sos-night"] = ""
 
 
 def _get(key: str) -> str | None:
@@ -32,19 +34,19 @@ def feedback_language() -> str:
 
 @router.get("/settings", response_model=Settings)
 def get_settings() -> Settings:
-    return Settings(feedback_language=_get("feedback_language"))
+    return Settings(feedback_language=_get("feedback_language"), theme=_get("theme") or "")
 
 
 @router.put("/settings", response_model=Settings)
 def save_settings(body: Settings) -> Settings:
+    """Saves the settings that were sent; those left out keep their value."""
     with get_connection() as conn:
-        if body.feedback_language is None:
-            conn.execute("DELETE FROM settings WHERE key = 'feedback_language'")
-        else:
-            conn.execute(
-                "INSERT OR REPLACE INTO settings (key, value) VALUES ('feedback_language', ?)",
-                (body.feedback_language.strip(),),
-            )
+        for key in body.model_fields_set:
+            value = getattr(body, key)
+            if value is None or value == "":
+                conn.execute("DELETE FROM settings WHERE key = ?", (key,))
+            else:
+                conn.execute("INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)", (key, value.strip()))
     return get_settings()
 
 
