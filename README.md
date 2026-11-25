@@ -25,7 +25,7 @@ It brings together [SOS My English](https://github.com/gyedongjeon/sos-my-englis
 - **A summary at the end**: wrap a conversation up to see how it went: what you did well, what to work on next, and a few expressions worth trying next time.
 - **40 topics in 9 categories**: everyday chat, work, school, shopping, food, travel, services, home, and giving your opinion.
 - **Sentence patterns by level**: 100 patterns from A1 to C2. You see a sentence in your own language and say it in the language you practise, five sentences a round, and each one is checked.
-- **Study with YouTube videos**: paste a link and listen to the video one sentence at a time, with repeat, slower speeds, the text hidden or shown, and a translation into your language turned on or off. Say a sentence after the speaker to see which words came through, and search all your videos for a phrase to hear how it is used. Mark an expression in a sentence to turn it into a pattern of your own and practise it. Videos are tagged with a level from A1 to C2 and can be listed level by level, and a video can suggest others like it at a similar level.
+- **Study with YouTube videos**: paste a link and listen to the video one sentence at a time or straight through, with repeat, slower speeds, the text hidden or shown, and a translation into your language turned on or off. Say a sentence after the speaker to see which words came through, and search all your videos for a phrase to hear how it is used. Mark an expression in a sentence to turn it into a pattern of your own and practise it. Videos are tagged with a level from A1 to C2 and can be listed level by level, and a video can suggest others like it at a similar level.
 - **Your own topics**: add the situations you need (a job interview, renting a car, a call with a client) next to the built-in ones.
 - **Practise your corrections**: every fix is collected on the Corrections page, where you say the better sentence aloud until it comes out right.
 - **History**: every conversation is saved as you have it, with its corrections, so you can read it and hear it again.
@@ -208,7 +208,10 @@ video's subtitles (preferring ones written by a person to automatic ones) and it
 saves them in the local database, cut into sentences: a subtitle line breaks where it fits the
 screen, so the lines are joined and cut again at the sentence ends, and each sentence gets the
 seconds between which it is said. Clicking a sentence plays just that part; it can be repeated,
-slowed down, and listened to with the text (and the player's own subtitles) hidden.
+slowed down, and listened to with the text hidden. With "Play on" turned on, playing does not
+stop at the end of the sentence but goes on to the end of the video, and the sentence being
+said is marked as it goes. The subtitles YouTube draws over the video are kept off, since the
+sentences are read in the list under it.
 
 **Levels.** When a video is added, the LLM estimates the CEFR level (A1 to C2) a learner needs
 to follow it, from sentences taken from its start, middle, and end and from how fast it is
