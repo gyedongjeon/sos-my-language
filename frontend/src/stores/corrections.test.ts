@@ -1,10 +1,11 @@
 import { createPinia, setActivePinia } from 'pinia'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import type { SavedCorrection } from '../types'
+import type { CorrectionKind, SavedCorrection } from '../types'
 import { source, useCorrectionsStore } from './corrections'
 
-const saved = (id: string, improved: string, practiced = 0): SavedCorrection => ({
+const saved = (id: string, improved: string, practiced = 0, kind: CorrectionKind = 'expression'): SavedCorrection => ({
   id,
+  kind,
   conversation_id: 1,
   pattern_id: null,
   video: null,
@@ -45,6 +46,29 @@ describe('corrections', () => {
     expect(store.items).toEqual(LIST)
     expect(store.remaining).toBe(1)
     expect(store.loading).toBe(false)
+  })
+
+  it('keeps the expressions and the sentences of videos apart', async () => {
+    const shadowed = saved('s3', 'This makes you realize where you still have gaps.', 0, 'shadowing')
+    fakeBackend({ '/corrections': [200, [...LIST, shadowed]] })
+    const store = useCorrectionsStore()
+    await store.load()
+    expect(store.kind).toBe('expression')
+    expect(store.ofKind).toEqual(LIST)
+    expect(store.remaining).toBe(1)
+    // What is left to practise in each, for the tabs.
+    expect(store.left).toEqual({ expression: 1, shadowing: 1 })
+    store.kind = 'shadowing'
+    expect(store.ofKind).toEqual([shadowed])
+    expect(store.remaining).toBe(1)
+  })
+
+  it('opens on the sentences of videos when there are no expressions', async () => {
+    const shadowed = saved('s3', 'This makes you realize where you still have gaps.', 0, 'shadowing')
+    fakeBackend({ '/corrections': [200, [shadowed]] })
+    const store = useCorrectionsStore()
+    await store.load()
+    expect(store.kind).toBe('shadowing')
   })
 
   it('reports that the corrections could not be loaded', async () => {

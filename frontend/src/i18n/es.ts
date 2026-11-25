@@ -220,6 +220,12 @@ const es: Record<keyof typeof en, string> = {
     'Las correcciones de tus conversaciones, las frases que fallaste al practicar patrones y las frases de un video que no te salieron bien al repetirlas. Escucha la frase mejorada y dila tú hasta que te salga bien.',
   'corrections.none':
     'Aún no hay correcciones. Aparecerán aquí cuando las recibas en una conversación, al practicar patrones o al repetir las frases de un video.',
+  'corrections.expressions': 'Expresiones',
+  'corrections.shadowing': 'Escuchar y repetir',
+  'corrections.noExpressions':
+    'Todavía no hay expresiones. Aquí se reúnen las frases mejoradas de tus conversaciones y de la práctica de patrones.',
+  'corrections.noShadowing':
+    'Todavía no hay frases de vídeos. Aquí se guarda una frase de un vídeo que no se oyó entera al repetirla.',
   'corrections.counts': '{remaining} por practicar · {practiced} bien dichas',
   'corrections.showPracticed': 'Mostrar las que ya dijiste bien',
   'corrections.allDone': 'Todo lo que hay aquí ya lo dijiste bien al menos una vez.',

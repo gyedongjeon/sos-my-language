@@ -19,8 +19,14 @@ const confirming = ref<string | null>(null)
 const showPracticed = ref(false)
 
 // A correction said right during this visit stays where it is, so its result can be read.
-const shown = computed(() => store.items.filter((c) => showPracticed.value || c.practiced === 0 || store.results[c.id]))
-const practiced = computed(() => store.items.length - store.remaining)
+const shown = computed(() => store.ofKind.filter((c) => showPracticed.value || c.practiced === 0 || store.results[c.id]))
+const practiced = computed(() => store.ofKind.length - store.remaining)
+// Better expressions from conversations and patterns, apart from sentences of videos not said right after them.
+const TABS = [
+  { kind: 'expression', label: 'corrections.expressions', none: 'corrections.noExpressions' },
+  { kind: 'shadowing', label: 'corrections.shadowing', none: 'corrections.noShadowing' },
+] as const
+const tab = computed(() => TABS.find((tab) => tab.kind === store.kind)!)
 const busy = computed(() => speaking.value !== null || store.checking !== null)
 
 async function remove(id: string) {
@@ -79,6 +85,25 @@ onBeforeUnmount(() => {
         </div>
       </div>
 
+      <div v-if="store.items.length" class="mt-4 flex flex-wrap gap-2" role="tablist" :aria-label="t('nav.corrections')">
+        <button
+          v-for="tab in TABS"
+          :key="tab.kind"
+          role="tab"
+          :aria-selected="tab.kind === store.kind"
+          class="btn btn-sm rounded-full"
+          :class="tab.kind === store.kind ? 'btn-primary' : 'btn-ghost bg-base-100'"
+          @click="store.kind = tab.kind"
+        >
+          {{ t(tab.label) }}
+          <span v-if="store.left[tab.kind]" class="badge badge-sm">{{ store.left[tab.kind] }}</span>
+        </button>
+      </div>
+
+      <p v-if="store.items.length && !store.ofKind.length" class="mt-4 text-base-content/70">
+        {{ t(tab.none) }}
+      </p>
+
       <div v-else-if="store.items.length" class="mt-4 flex flex-wrap items-center justify-between gap-2 text-sm">
         <span>{{ t('corrections.counts', { remaining: store.remaining, practiced }) }}</span>
         <label v-if="practiced" class="label cursor-pointer gap-2">
@@ -87,17 +112,27 @@ onBeforeUnmount(() => {
         </label>
       </div>
 
-      <p v-if="store.items.length && !shown.length" class="mt-4 text-base-content/70">
+      <p v-if="store.ofKind.length && !shown.length" class="mt-4 text-base-content/70">
         {{ t('corrections.allDone') }}
       </p>
 
       <ul class="mt-3 grid gap-3">
         <li v-for="c in shown" :key="c.id" class="card card-border bg-base-100">
           <div class="card-body gap-2">
-            <p v-if="c.prompt" class="text-sm text-base-content/70">{{ c.prompt }}</p>
-            <p class="text-base-content/60 line-through">{{ c.original }}</p>
-            <p class="text-lg font-medium text-success">{{ c.improved }}</p>
-            <p class="text-sm text-base-content/70">{{ c.explanation }}</p>
+            <template v-if="c.kind === 'shadowing'">
+              <!-- What was heard is not a wrong sentence, so it is not crossed out. -->
+              <p class="text-lg font-medium">{{ c.improved }}</p>
+              <p class="text-sm">
+                <span class="text-base-content/60">{{ t('corrections.heard') }}</span> {{ c.original }}
+              </p>
+              <p class="text-sm text-base-content/70">{{ c.explanation }}</p>
+            </template>
+            <template v-else>
+              <p v-if="c.prompt" class="text-sm text-base-content/70">{{ c.prompt }}</p>
+              <p class="text-base-content/60 line-through">{{ c.original }}</p>
+              <p class="text-lg font-medium text-success">{{ c.improved }}</p>
+              <p class="text-sm text-base-content/70">{{ c.explanation }}</p>
+            </template>
 
             <div class="flex flex-wrap items-center gap-2">
               <button class="btn btn-sm" @click="speech.speak(c.improved)">{{ t('common.hearIt') }}</button>

@@ -220,6 +220,12 @@ const it: Record<keyof typeof en, string> = {
     'Le correzioni delle tue conversazioni, le frasi sbagliate negli esercizi sulle strutture e le frasi dei video che non hai ripetuto bene. Ascolta la frase corretta, poi dilla tu finché non ti viene bene.',
   'corrections.none':
     'Ancora nessuna correzione. Compaiono qui quando ne ricevi in una conversazione, negli esercizi sulle strutture o ripetendo le frasi di un video.',
+  'corrections.expressions': 'Espressioni',
+  'corrections.shadowing': 'Ripeti a voce',
+  'corrections.noExpressions':
+    'Ancora nessuna espressione. Qui si raccolgono le frasi migliorate delle tue conversazioni e della pratica degli schemi.',
+  'corrections.noShadowing':
+    'Ancora nessuna frase dai video. Qui si conserva una frase di un video che non si è sentita tutta quando l’hai ripetuta.',
   'corrections.counts': 'Da esercitare: {remaining} · Dette bene: {practiced}',
   'corrections.showPracticed': 'Mostra anche quelle già dette bene',
   'corrections.allDone': 'Qui hai già detto bene tutto almeno una volta.',

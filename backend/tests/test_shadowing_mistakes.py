@@ -35,6 +35,8 @@ def test_a_sentence_not_said_right_is_listed_with_the_corrections(client, video)
     shadow(client, line, "This makes you realize where you still have guess")
     [mistake] = corrections(client)
     assert mistake["id"].startswith("s")
+    # It is practised by saying it after the video again, not by learning a better expression.
+    assert mistake["kind"] == "shadowing"
     assert (mistake["original"], mistake["improved"]) == (
         "This makes you realize where you still have guess",
         "This makes you realize where you still have gaps.",

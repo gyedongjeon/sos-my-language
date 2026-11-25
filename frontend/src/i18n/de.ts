@@ -224,6 +224,12 @@ const de: Record<keyof typeof en, string> = {
     'Die Korrekturen aus deinen Gesprächen, die Sätze, die beim Üben der Muster nicht gestimmt haben, und die Sätze aus Videos, die du nicht richtig nachgesprochen hast. Hör dir den besseren Satz an und sag ihn dann selbst, bis er sitzt.',
   'corrections.none':
     'Noch keine Korrekturen. Sie erscheinen hier, sobald du im Gespräch, beim Üben der Muster oder beim Nachsprechen von Videosätzen welche bekommst.',
+  'corrections.expressions': 'Ausdrücke',
+  'corrections.shadowing': 'Nachsprechen',
+  'corrections.noExpressions':
+    'Noch keine Ausdrücke. Hier werden die verbesserten Sätze aus deinen Gesprächen und dem Musterüben gesammelt.',
+  'corrections.noShadowing':
+    'Noch keine Sätze aus Videos. Ein Satz aus einem Video, der beim Nachsprechen nicht ganz zu hören war, wird hier aufbewahrt.',
   'corrections.counts': '{remaining} zu üben · {practiced} richtig gesagt',
   'corrections.showPracticed': 'Auch die schon richtig gesagten anzeigen',
   'corrections.allDone': 'Alles hier hast du mindestens einmal richtig gesagt.',

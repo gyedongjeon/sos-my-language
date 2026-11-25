@@ -218,6 +218,12 @@ const ja: Record<keyof typeof en, string> = {
     '会話で直された文、パターン練習で間違えた文、動画のあとについて言うときにうまく言えなかった文がここに集まります。よりよい文を聞いて、正しく言えるまで自分で言ってみましょう。',
   'corrections.none':
     '添削はまだありません。会話やパターン練習をしたり、動画の文をあとについて言ったりすると、ここに表示されます。',
+  'corrections.expressions': '表現',
+  'corrections.shadowing': 'あとについて言う',
+  'corrections.noExpressions':
+    'まだ表現はありません。会話とパターン練習で直された文がここに集まります。',
+  'corrections.noShadowing':
+    'まだ動画の文はありません。動画のあとについて言ったとき、すべて聞き取れなかった文がここに集まります。',
   'corrections.counts': '練習する文 {remaining}件 · 正しく言えた文 {practiced}件',
   'corrections.showPracticed': '正しく言えた文も表示',
   'corrections.allDone': 'ここにある文は、すべて一度は正しく言えています。',

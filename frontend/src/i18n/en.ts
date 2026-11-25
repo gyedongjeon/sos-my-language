@@ -216,6 +216,12 @@ export default {
     'The fixes from your conversations, the sentences you got wrong in pattern practice, and the sentences of a video you did not say right after it. Listen to the better sentence, then say it yourself until it comes out right.',
   'corrections.none':
     "No corrections yet. They appear here as you get them in a conversation, in pattern practice, or saying a video's sentences after it.",
+  'corrections.expressions': 'Expressions',
+  'corrections.shadowing': 'Shadowing',
+  'corrections.noExpressions':
+    'No expressions yet. The better sentences from your conversations and pattern practice are collected here.',
+  'corrections.noShadowing':
+    'No sentences from videos yet. A sentence that was not all heard when you said it after a video is kept here.',
   'corrections.counts': '{remaining} to practise · {practiced} said right',
   'corrections.showPracticed': 'Show the ones already said right',
   'corrections.allDone': 'Everything here has been said right at least once.',

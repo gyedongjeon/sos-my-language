@@ -222,6 +222,12 @@ const pl: Record<keyof typeof en, string> = {
     'Poprawki z Twoich rozmów, zdania z ćwiczenia wzorców, w których pojawił się błąd, oraz zdania z filmów, których nie udało Ci się dobrze powtórzyć. Posłuchaj lepszej wersji zdania, a potem mów je na głos, aż wyjdzie dobrze.',
   'corrections.none':
     'Nie ma jeszcze żadnych poprawek. Pojawią się tutaj, gdy dostaniesz je w rozmowie, podczas ćwiczenia wzorców albo przy powtarzaniu zdań z filmu.',
+  'corrections.expressions': 'Wyrażenia',
+  'corrections.shadowing': 'Powtarzanie',
+  'corrections.noExpressions':
+    'Nie ma jeszcze wyrażeń. Tutaj zbierają się poprawione zdania z rozmów i ćwiczenia wzorców.',
+  'corrections.noShadowing':
+    'Nie ma jeszcze zdań z filmów. Tutaj trafia zdanie z filmu, które przy powtarzaniu nie zostało usłyszane w całości.',
   'corrections.counts': 'Do przećwiczenia: {remaining} · Powiedziane dobrze: {practiced}',
   'corrections.showPracticed': 'Pokaż też te powiedziane już dobrze',
   'corrections.allDone': 'Wszystko tutaj zostało już przynajmniej raz powiedziane dobrze.',

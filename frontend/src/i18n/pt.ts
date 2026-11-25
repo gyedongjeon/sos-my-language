@@ -219,6 +219,12 @@ const pt: Record<keyof typeof en, string> = {
     'As correções das suas conversas, as frases que você errou na prática de padrões e as frases de vídeos que não saíram certas quando você as repetiu. Ouça a frase melhorada e depois diga você, até sair certo.',
   'corrections.none':
     'Nenhuma correção ainda. Elas aparecem aqui quando você as recebe em uma conversa, na prática de padrões ou ao repetir as frases de um vídeo.',
+  'corrections.expressions': 'Expressões',
+  'corrections.shadowing': 'Ouvir e repetir',
+  'corrections.noExpressions':
+    'Ainda não há expressões. As frases melhoradas das suas conversas e da prática de padrões são reunidas aqui.',
+  'corrections.noShadowing':
+    'Ainda não há frases de vídeos. Uma frase de um vídeo que não foi ouvida por inteiro quando você a repetiu fica guardada aqui.',
   'corrections.counts': '{remaining} para praticar · {practiced} já acertadas',
   'corrections.showPracticed': 'Mostrar as que você já acertou',
   'corrections.allDone': 'Você já acertou tudo o que está aqui pelo menos uma vez.',

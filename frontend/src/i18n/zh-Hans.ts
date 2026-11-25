@@ -212,6 +212,12 @@ const zhHans: Record<keyof typeof en, string> = {
   'corrections.intro':
     '这里收集了对话中得到的纠错、句型练习里说错的句子，以及跟读视频时没说对的句子。先听听更好的说法，再自己说，直到说对为止。',
   'corrections.none': '还没有纠错。在对话、句型练习或视频跟读中得到的纠错都会出现在这里。',
+  'corrections.expressions': '表达',
+  'corrections.shadowing': '跟读',
+  'corrections.noExpressions':
+    '还没有表达。对话和句型练习中改正的句子会收集在这里。',
+  'corrections.noShadowing':
+    '还没有视频中的句子。跟读视频时没有全部听清的句子会收集在这里。',
   'corrections.counts': '待练习 {remaining} · 已说对 {practiced}',
   'corrections.showPracticed': '显示已经说对的',
   'corrections.allDone': '这里的句子都至少说对过一次了。',
