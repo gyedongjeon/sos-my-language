@@ -199,6 +199,20 @@ function translateIfShown() {
 }
 watch(() => [videos.showTranslation, video.value?.id], translateIfShown)
 
+// The sentences get taller when their translation is shown and shorter when it is hidden, which
+// would push the sentence being heard off the screen; the page is moved by as much as that
+// sentence moved, so it stays where it was.
+const translationsShown = computed(() =>
+  videos.showTranslation && videos.translatedFor === video.value?.id ? Object.keys(videos.translations).length : 0,
+)
+watch(translationsShown, async () => {
+  const top = () => list.value?.querySelector(`[data-line="${current.value}"]`)?.getBoundingClientRect?.().top
+  const before = top()
+  await nextTick()
+  const after = top()
+  if (before !== undefined && after !== undefined) window.scrollBy(0, after - before)
+})
+
 watch(rate, (now) => player.setRate(now))
 watch(player.ready, (now) => now && player.setRate(rate.value))
 // Repeating starts or stops for the sentence that is playing, too.
