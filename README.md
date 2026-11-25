@@ -279,7 +279,9 @@ search asks the LLM up to seven times and takes about ten seconds.
 ### Practising corrections
 The Corrections page lists the fixes from all saved conversations, the sentences you got
 wrong in pattern practice (with the sentence that was asked for), and the sentences of a video
-you did not say in full after it (with the words that were not heard, linked to the sentence). "Say it" records you, the
+you did not say in full after it (with the words that were not heard, linked to the sentence).
+They are under two tabs: **Expressions**, the better sentences from conversations and patterns,
+and **Shadowing**, the sentences of videos. "Say it" records you, the
 recording is transcribed locally like any other line, and the words are compared with the better
 sentence: punctuation and capitals are ignored, short forms equal their words ("I'm" and "I am",
 "geht's" and "geht es"), and the sentence may be part of something longer. A match is counted ("Said right ×2"); otherwise the page shows what was heard
