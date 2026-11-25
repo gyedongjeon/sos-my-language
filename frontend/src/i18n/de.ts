@@ -264,6 +264,11 @@ const de: Record<keyof typeof en, string> = {
     'In dieser Sprache werden die Seiten angezeigt und die Korrekturen erklärt. Das Gespräch und die korrigierten Sätze bleiben auf {language}.',
   'settings.yourLanguageNote':
     'Voreingestellt ist die Sprache deines Browsers. Deine Auswahl wird sofort gespeichert. Die meisten Sprachen der Seiten wurden von einer KI übersetzt und nicht von Muttersprachlern geprüft, manches kann daher etwas ungewohnt klingen.',
+  'settings.theme': 'Erscheinungsbild',
+  'settings.themeBody': 'Folgt dem hellen oder dunklen Modus des Systems oder zeigt die Seiten immer hell oder dunkel.',
+  'settings.themeSystem': 'System',
+  'settings.themeLight': 'Hell',
+  'settings.themeDark': 'Dunkel',
   'settings.voiceBody':
     'Die Stimme, mit der dein Gesprächspartner auf {language} spricht. Alle Stimmen laufen auf diesem Computer; eine, die noch fehlt, wird heruntergeladen, wenn du sie zum ersten Mal auswählst.',
   'settings.voice': 'Stimme',
@@ -299,6 +304,7 @@ const de: Record<keyof typeof en, string> = {
   'settings.licenses': 'Vollständige Lizenztexte',
   'settings.languageFailed': 'Die Sprache konnte nicht gewechselt werden: {error}',
   'settings.voiceFailed': 'Die Stimme konnte nicht gewechselt werden: {error}',
+  'settings.themeFailed': 'Das Erscheinungsbild konnte nicht gespeichert werden: {error}',
   'settings.yourLanguageFailed': 'Die Sprache konnte nicht gespeichert werden: {error}',
 }
 

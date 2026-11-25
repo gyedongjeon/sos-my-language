@@ -259,6 +259,11 @@ const fr: Record<keyof typeof en, string> = {
     'Les pages s’affichent et les corrections sont expliquées dans cette langue. La conversation et les phrases corrigées restent en {language}.',
   'settings.yourLanguageNote':
     'Au départ, c’est la langue de votre navigateur. Votre choix est enregistré aussitôt. La plupart des langues des pages ont été traduites par une IA, sans relecture par un locuteur natif : un texte peut donc sembler un peu étrange.',
+  'settings.theme': 'Apparence',
+  'settings.themeBody': 'Suit le mode clair ou sombre du système, ou garde les pages toujours claires ou sombres.',
+  'settings.themeSystem': 'Système',
+  'settings.themeLight': 'Clair',
+  'settings.themeDark': 'Sombre',
   'settings.voiceBody':
     'La voix avec laquelle votre partenaire parle en {language}. Toutes les voix fonctionnent sur cet ordinateur ; celle qui n’y est pas encore est téléchargée la première fois que vous la choisissez.',
   'settings.voice': 'Voix',
@@ -291,6 +296,7 @@ const fr: Record<keyof typeof en, string> = {
   'settings.licenses': 'Textes complets des licences',
   'settings.languageFailed': 'Impossible de changer de langue : {error}',
   'settings.voiceFailed': 'Impossible de changer de voix : {error}',
+  'settings.themeFailed': 'Impossible d’enregistrer l’apparence : {error}',
   'settings.yourLanguageFailed': 'Impossible d’enregistrer la langue : {error}',
 }
 

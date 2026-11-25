@@ -261,6 +261,11 @@ const pl: Record<keyof typeof en, string> = {
     'W tym języku wyświetlane są strony i objaśnienia poprawek. Rozmowa i poprawione zdania pozostają w języku: {language}.',
   'settings.yourLanguageNote':
     'Na początku jest to język Twojej przeglądarki. Wybór zapisuje się od razu. Większość wersji językowych przetłumaczyła AI i nie sprawdziła ich osoba, dla której to język ojczysty, więc niektóre teksty mogą brzmieć trochę nienaturalnie.',
+  'settings.theme': 'Wygląd',
+  'settings.themeBody': 'Dopasowuje się do jasnego lub ciemnego trybu systemu albo zawsze pokazuje strony jasne lub ciemne.',
+  'settings.themeSystem': 'Systemowy',
+  'settings.themeLight': 'Jasny',
+  'settings.themeDark': 'Ciemny',
   'settings.voiceBody':
     'Głos, którym rozmówca mówi w języku: {language}. Wszystkie głosy działają na tym komputerze; głos, którego jeszcze na nim nie ma, zostanie pobrany, gdy wybierzesz go po raz pierwszy.',
   'settings.voice': 'Głos',
@@ -294,6 +299,7 @@ const pl: Record<keyof typeof en, string> = {
   'settings.licenses': 'Pełne teksty licencji',
   'settings.languageFailed': 'Nie udało się zmienić języka: {error}',
   'settings.voiceFailed': 'Nie udało się zmienić głosu: {error}',
+  'settings.themeFailed': 'Nie udało się zapisać wyglądu: {error}',
   'settings.yourLanguageFailed': 'Nie udało się zapisać języka: {error}',
 }
 

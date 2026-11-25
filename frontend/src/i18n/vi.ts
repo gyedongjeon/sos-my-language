@@ -257,6 +257,11 @@ const vi: Record<keyof typeof en, string> = {
     'Các trang được hiển thị và lỗi được giải thích bằng ngôn ngữ này. Cuộc trò chuyện và các câu đã sửa vẫn bằng {language}.',
   'settings.yourLanguageNote':
     'Ban đầu lấy theo ngôn ngữ của trình duyệt. Được lưu ngay khi bạn chọn. Phần lớn các ngôn ngữ hiển thị do AI dịch và chưa được người bản ngữ kiểm tra, nên đôi chỗ đọc có thể hơi lạ.',
+  'settings.theme': 'Giao diện',
+  'settings.themeBody': 'Theo chế độ sáng hoặc tối của hệ thống, hoặc luôn giữ giao diện sáng hoặc tối.',
+  'settings.themeSystem': 'Theo hệ thống',
+  'settings.themeLight': 'Sáng',
+  'settings.themeDark': 'Tối',
   'settings.voiceBody':
     'Giọng mà người đối thoại dùng khi nói {language}. Mọi giọng đều chạy trên máy tính này; giọng nào chưa có sẽ được tải về khi bạn chọn lần đầu.',
   'settings.voice': 'Giọng nói',
@@ -289,6 +294,7 @@ const vi: Record<keyof typeof en, string> = {
   'settings.licenses': 'Toàn văn các giấy phép',
   'settings.languageFailed': 'Không đổi được ngôn ngữ: {error}',
   'settings.voiceFailed': 'Không đổi được giọng nói: {error}',
+  'settings.themeFailed': 'Không thể lưu giao diện: {error}',
   'settings.yourLanguageFailed': 'Không lưu được ngôn ngữ: {error}',
 }
 

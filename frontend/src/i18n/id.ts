@@ -259,6 +259,11 @@ const id: Record<keyof typeof en, string> = {
     'Halaman ditampilkan dan koreksi dijelaskan dalam bahasa ini. Percakapan dan kalimat hasil koreksi tetap dalam {language}.',
   'settings.yourLanguageNote':
     'Awalnya mengikuti bahasa browser-mu. Langsung tersimpan begitu kamu memilih. Sebagian besar bahasa halaman diterjemahkan oleh AI dan belum diperiksa penutur asli, jadi mungkin ada teks yang terasa agak janggal.',
+  'settings.theme': 'Tampilan',
+  'settings.themeBody': 'Mengikuti mode terang atau gelap sistem, atau selalu menampilkan halaman terang atau gelap.',
+  'settings.themeSystem': 'Ikuti sistem',
+  'settings.themeLight': 'Terang',
+  'settings.themeDark': 'Gelap',
   'settings.voiceBody':
     'Suara yang dipakai lawan bicaramu saat berbicara dalam {language}. Semua suara dijalankan di komputer ini; suara yang belum ada diunduh saat pertama kali kamu pilih.',
   'settings.voice': 'Suara',
@@ -292,6 +297,7 @@ const id: Record<keyof typeof en, string> = {
   'settings.licenses': 'Teks lisensi lengkap',
   'settings.languageFailed': 'Gagal mengganti bahasa: {error}',
   'settings.voiceFailed': 'Gagal mengganti suara: {error}',
+  'settings.themeFailed': 'Tidak dapat menyimpan tampilan: {error}',
   'settings.yourLanguageFailed': 'Gagal menyimpan bahasa: {error}',
 }
 

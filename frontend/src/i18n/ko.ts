@@ -249,6 +249,11 @@ const ko: Record<keyof typeof en, string> = {
   'settings.yourLanguageBody': '화면과 교정 설명이 이 언어로 나옵니다. 대화와 고친 문장은 {language} 그대로입니다.',
   'settings.yourLanguageNote':
     '처음에는 브라우저 언어로 정해지고, 고르는 즉시 저장됩니다. 화면의 번역은 대부분 AI가 했고 원어민 검수를 거치지 않아 조금 어색한 문구가 있을 수 있습니다.',
+  'settings.theme': '화면 테마',
+  'settings.themeBody': '시스템의 라이트·다크 모드를 따르거나, 화면을 라이트나 다크로 고정합니다.',
+  'settings.themeSystem': '시스템 설정',
+  'settings.themeLight': '라이트',
+  'settings.themeDark': '다크',
   'settings.voiceBody':
     '상대가 {language}로 말할 때 쓰는 목소리입니다. 모든 목소리는 이 컴퓨터에서 실행되며, 아직 없는 목소리는 처음 고를 때 내려받습니다.',
   'settings.voice': '목소리',
@@ -281,6 +286,7 @@ const ko: Record<keyof typeof en, string> = {
   'settings.licenses': '라이선스 전문',
   'settings.languageFailed': '언어를 바꾸지 못했습니다: {error}',
   'settings.voiceFailed': '목소리를 바꾸지 못했습니다: {error}',
+  'settings.themeFailed': '화면 테마를 저장하지 못했습니다: {error}',
   'settings.yourLanguageFailed': '언어를 저장하지 못했습니다: {error}',
 }
 

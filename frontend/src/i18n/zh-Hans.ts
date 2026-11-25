@@ -249,6 +249,11 @@ const zhHans: Record<keyof typeof en, string> = {
   'settings.yourLanguageBody': '页面和纠错说明会用这种语言显示。对话和改正后的句子仍然是{language}。',
   'settings.yourLanguageNote':
     '默认跟随浏览器的语言，选择后立即保存。页面的大多数语言版本由 AI 翻译，未经母语者校对，个别文字读起来可能有些别扭。',
+  'settings.theme': '主题',
+  'settings.themeBody': '跟随系统的浅色或深色模式，或将页面固定为浅色或深色。',
+  'settings.themeSystem': '跟随系统',
+  'settings.themeLight': '浅色',
+  'settings.themeDark': '深色',
   'settings.voiceBody':
     '对方说{language}时使用的声音。所有声音都在这台电脑上运行；还没有下载的声音会在第一次选用时下载。',
   'settings.voice': '声音',
@@ -281,6 +286,7 @@ const zhHans: Record<keyof typeof en, string> = {
   'settings.licenses': '许可证全文',
   'settings.languageFailed': '切换语言失败：{error}',
   'settings.voiceFailed': '更换声音失败：{error}',
+  'settings.themeFailed': '无法保存主题：{error}',
   'settings.yourLanguageFailed': '保存语言失败：{error}',
 }
 

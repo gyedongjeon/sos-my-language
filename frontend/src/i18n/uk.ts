@@ -260,6 +260,11 @@ const uk: Record<keyof typeof en, string> = {
     'Цією мовою показано сторінки й пояснено виправлення. Розмова й виправлені речення залишаються мовою, яку ви вивчаєте ({language}).',
   'settings.yourLanguageNote':
     'Спочатку береться мова вашого браузера. Вибір зберігається одразу. Тексти сторінок більшістю мов переклав ШІ, і носії мови їх не перевіряли, тож подекуди текст може звучати трохи дивно.',
+  'settings.theme': 'Оформлення',
+  'settings.themeBody': 'Слідує світлій або темній темі системи чи завжди показує сторінки світлими або темними.',
+  'settings.themeSystem': 'Як у системі',
+  'settings.themeLight': 'Світле',
+  'settings.themeDark': 'Темне',
   'settings.voiceBody':
     'Голос, яким співрозмовник говорить із вами (мова — {language}). Усі голоси працюють на цьому комп’ютері; голос, якого ще немає, завантажується, коли ви вперше його обираєте.',
   'settings.voice': 'Голос',
@@ -293,6 +298,7 @@ const uk: Record<keyof typeof en, string> = {
   'settings.licenses': 'Повні тексти ліцензій',
   'settings.languageFailed': 'Не вдалося змінити мову: {error}',
   'settings.voiceFailed': 'Не вдалося змінити голос: {error}',
+  'settings.themeFailed': 'Не вдалося зберегти оформлення: {error}',
   'settings.yourLanguageFailed': 'Не вдалося зберегти мову: {error}',
 }
 
