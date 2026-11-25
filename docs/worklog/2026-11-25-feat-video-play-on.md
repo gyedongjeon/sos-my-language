@@ -27,4 +27,4 @@ Considered and left out: remembering "Play on" between videos or sessions; it st
 
 - `cd frontend && npm test`: 235 pass, with new tests for `playFrom` (does not stop at a sentence's end), for hiding the subtitles on ready and on each start, and for `resumeFrom`.
 - `cd frontend && npm run build`: type check and build pass.
-- Not verified in the running app: the three changes were not looked at in a browser (the browser at hand could not reach the dev server). Whether YouTube's player obeys the call that turns the subtitles off, and how the page scrolls when the translation appears, still need a look by hand.
+- In the running app (dev servers, a saved video): checked by hand that YouTube's subtitles do not appear, that "Play on" plays through and follows the sentence being said, and that the sentence being heard keeps its place when the translation is turned on and off.
