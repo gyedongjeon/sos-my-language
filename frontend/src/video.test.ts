@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { clock, lineAt, pick, stepFrom } from './video'
+import { clock, lineAt, pick, resumeFrom, stepFrom } from './video'
 
 const LINES = [
   { start: 7, end: 10, text: 'One.' },
@@ -61,5 +61,20 @@ describe('pick', () => {
 
   it('takes the mark off when the one marked word is picked again', () => {
     expect(pick([3, 3], 3)).toBeNull()
+  })
+})
+
+describe('resumeFrom', () => {
+  it('goes on from where the video stopped while its sentence is the chosen one', () => {
+    expect(resumeFrom(LINES, 1, 12.3, 0.25)).toBe(12.3)
+  })
+
+  it('starts at the chosen sentence, a moment early, when the video stopped elsewhere', () => {
+    expect(resumeFrom(LINES, 2, 12.3, 0.25)).toBe(19.75)
+    expect(resumeFrom([{ start: 0.1, end: 2, text: 'First.' }], 0, 0, 0.25)).toBe(0)
+  })
+
+  it('starts where the video is before any sentence is chosen', () => {
+    expect(resumeFrom(LINES, -1, 0, 0.25)).toBe(0)
   })
 })

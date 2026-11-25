@@ -8,7 +8,6 @@ interface Player {
   seekTo(seconds: number, allowSeekAhead: boolean): void
   getCurrentTime(): number
   setPlaybackRate(rate: number): void
-  loadModule(name: string): void
   unloadModule(name: string): void
   setOption(module: string, option: string, value: unknown): void
   destroy(): void
@@ -31,7 +30,8 @@ declare global {
 }
 
 // The player's states in which the video is running: playing, and loading more of it after a jump.
-const RUNNING = [1, 3]
+const PLAYING = 1
+const RUNNING = [PLAYING, 3]
 // How often the time of the video is read while it plays, in milliseconds.
 const TICK_MS = 100
 // YouTube's error codes for a video its owner does not let other pages show.
@@ -57,7 +57,7 @@ function loadApi(): Promise<void> {
 
 /**
  * YouTube's own player inside an element of the page. The video is streamed by YouTube; this
- * only steers it: play one part of the video and stop, or keep repeating it.
+ * only steers it: play one part of the video and stop, keep repeating it, or play on from a time.
  */
 export function useYouTubePlayer(element: Ref<HTMLElement | null>) {
   const ready = ref(false)
@@ -84,6 +84,14 @@ export function useYouTubePlayer(element: Ref<HTMLElement | null>) {
     }
   }
 
+  // The sentences are read in the list under the video, so the subtitles YouTube draws over
+  // the video itself stay off, whatever the learner's own YouTube settings say.
+  function hideCaptions() {
+    // Choosing no track turns the subtitles off; unloading keeps them from coming back.
+    player?.setOption('captions', 'track', {})
+    player?.unloadModule('captions')
+  }
+
   async function open(videoId: string) {
     close()
     error.value = ''
@@ -101,8 +109,13 @@ export function useYouTubePlayer(element: Ref<HTMLElement | null>) {
       videoId,
       playerVars: { rel: 0, playsinline: 1, cc_load_policy: 0 },
       events: {
-        onReady: () => (ready.value = true),
+        onReady: () => {
+          ready.value = true
+          hideCaptions()
+        },
         onStateChange: ({ data }) => {
+          // The subtitles come back when a video starts to play, so they are hidden again then.
+          if (data === PLAYING) hideCaptions()
           playing.value = RUNNING.includes(data)
           if (playing.value) timer ??= setInterval(tick, TICK_MS)
           else if (timer) {
@@ -128,6 +141,17 @@ export function useYouTubePlayer(element: Ref<HTMLElement | null>) {
     player.playVideo()
   }
 
+  /** Plays the video on from `start`, without stopping at the end of a sentence. */
+  function playFrom(start: number) {
+    if (!player || !ready.value) return
+    part.value = null
+    // Known at once: YouTube reports the new time a moment later, and until then the sentence
+    // said at the old time would count as the one being said.
+    time.value = start
+    player.seekTo(start, true)
+    player.playVideo()
+  }
+
   function pause() {
     part.value = null
     player?.pauseVideo()
@@ -135,17 +159,6 @@ export function useYouTubePlayer(element: Ref<HTMLElement | null>) {
 
   function setRate(rate: number) {
     player?.setPlaybackRate(rate)
-  }
-
-  /** Shows or hides the subtitles YouTube draws over the video. */
-  function setCaptions(on: boolean) {
-    if (!player) return
-    if (on) player.loadModule('captions')
-    else {
-      // Choosing no track turns the subtitles off; unloading keeps them from coming back.
-      player.setOption('captions', 'track', {})
-      player.unloadModule('captions')
-    }
   }
 
   function close() {
@@ -160,5 +173,5 @@ export function useYouTubePlayer(element: Ref<HTMLElement | null>) {
   }
 
   onBeforeUnmount(close)
-  return { ready, playing, time, error, part, open, playPart, pause, setRate, setCaptions, close }
+  return { ready, playing, time, error, part, open, playPart, playFrom, pause, setRate, close }
 }

@@ -9,13 +9,14 @@ import { usePatternsStore } from '../stores/patterns'
 import { useShadowStore } from '../stores/shadow'
 import { LEVELS, useVideosStore } from '../stores/videos'
 import type { PatternStatus, Video } from '../types'
-import { clock, lineAt, pick, stepFrom } from '../video'
+import { clock, lineAt, pick, resumeFrom, stepFrom } from '../video'
 import { useSettingsStore } from '../stores/settings'
 import { t, tc } from '../i18n'
 
 const settings = useSettingsStore()
 
-// A saved video, listened to one sentence at a time, and shadowed: said after the speaker.
+// A saved video, listened to one sentence at a time or played on without stopping, and
+// shadowed: said after the speaker.
 const props = defineProps<{ id: number }>()
 
 // A sentence's start is worked out from its subtitle line, so playing starts a moment early.
@@ -75,6 +76,8 @@ const made = ref<PatternStatus | null>(null)
 // The sentence chosen by the learner; while the video plays on, the one being said.
 const chosen = ref(-1)
 const repeat = ref(false)
+// Whether the video plays on after a sentence instead of stopping at its end.
+const playOn = ref(false)
 const rate = ref(1)
 const showText = ref(true)
 
@@ -102,7 +105,9 @@ function play(index: number) {
     stopMarking()
   }
   chosen.value = index
-  player.playPart(Math.max(0, line.start - LEAD), line.end, repeat.value)
+  const start = Math.max(0, line.start - LEAD)
+  if (playOn.value) player.playFrom(start)
+  else player.playPart(start, line.end, repeat.value)
 }
 
 function step(by: 1 | -1) {
@@ -111,6 +116,7 @@ function step(by: 1 | -1) {
 
 function toggle() {
   if (player.playing.value) player.pause()
+  else if (playOn.value) player.playFrom(resumeFrom(lines.value, chosen.value, player.time.value, LEAD))
   else play(current.value < 0 ? 0 : current.value)
 }
 
@@ -193,15 +199,33 @@ function translateIfShown() {
 }
 watch(() => [videos.showTranslation, video.value?.id], translateIfShown)
 
+// The sentences get taller when their translation is shown and shorter when it is hidden, which
+// would push the sentence being heard off the screen; the page is moved by as much as that
+// sentence moved, so it stays where it was.
+const translationsShown = computed(() =>
+  videos.showTranslation && videos.translatedFor === video.value?.id ? Object.keys(videos.translations).length : 0,
+)
+watch(translationsShown, async () => {
+  const top = () => list.value?.querySelector(`[data-line="${current.value}"]`)?.getBoundingClientRect?.().top
+  const before = top()
+  await nextTick()
+  const after = top()
+  if (before !== undefined && after !== undefined) window.scrollBy(0, after - before)
+})
+
 watch(rate, (now) => player.setRate(now))
 watch(player.ready, (now) => now && player.setRate(rate.value))
-// With the text hidden, the subtitles on the video itself are hidden as well.
-watch(showText, (now) => player.setCaptions(now))
-// The subtitles come back when a video starts to play, so they are hidden again then.
-watch(player.playing, (now) => now && !showText.value && player.setCaptions(false))
 // Repeating starts or stops for the sentence that is playing, too.
 watch(repeat, (now) => {
   if (player.part.value) player.part.value.repeat = now
+})
+// Playing on starts or stops for the video that is playing, too: the sentence being played no
+// longer ends the playing, or the one being said becomes the last.
+watch(playOn, (now) => {
+  if (!player.playing.value) return
+  const line = lines.value[current.value]
+  if (now) player.part.value = null
+  else if (line) player.part.value = { start: Math.max(0, line.start - LEAD), end: line.end, repeat: repeat.value }
 })
 watch(current, async (now) => {
   await nextTick()
@@ -283,11 +307,15 @@ onBeforeUnmount(() => recorder.release())
         <div class="mt-3 flex flex-wrap items-center gap-2">
           <button class="btn btn-sm" :disabled="!player.ready.value" :aria-label="t('video.previousSentence')" @click="step(-1)">{{ t('video.previous') }}</button>
           <button class="btn btn-primary btn-sm" :disabled="!player.ready.value" @click="toggle">
-            {{ player.playing.value ? t('video.pause') : t('video.play') }}
+            {{ player.playing.value ? t('video.pause') : playOn ? t('video.playVideo') : t('video.play') }}
           </button>
           <button class="btn btn-sm" :disabled="!player.ready.value" :aria-label="t('video.nextSentence')" @click="step(1)">{{ t('video.next') }}</button>
+          <label class="label cursor-pointer gap-2 text-sm" :title="t('video.playOnHint')">
+            <input v-model="playOn" type="checkbox" class="toggle toggle-sm" />
+            {{ t('video.playOn') }}
+          </label>
           <label class="label cursor-pointer gap-2 text-sm">
-            <input v-model="repeat" type="checkbox" class="toggle toggle-sm" />
+            <input v-model="repeat" type="checkbox" class="toggle toggle-sm" :disabled="playOn" />
             {{ t('video.repeat') }}
           </label>
           <label class="flex items-center gap-2 text-sm">
