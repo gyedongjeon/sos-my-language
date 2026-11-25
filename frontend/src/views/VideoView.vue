@@ -195,10 +195,6 @@ watch(() => [videos.showTranslation, video.value?.id], translateIfShown)
 
 watch(rate, (now) => player.setRate(now))
 watch(player.ready, (now) => now && player.setRate(rate.value))
-// With the text hidden, the subtitles on the video itself are hidden as well.
-watch(showText, (now) => player.setCaptions(now))
-// The subtitles come back when a video starts to play, so they are hidden again then.
-watch(player.playing, (now) => now && !showText.value && player.setCaptions(false))
 // Repeating starts or stops for the sentence that is playing, too.
 watch(repeat, (now) => {
   if (player.part.value) player.part.value.repeat = now
