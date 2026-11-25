@@ -7,6 +7,16 @@ export function lineAt(lines: VideoLine[], time: number): number {
   return found
 }
 
+/**
+ * Where the video goes on from when it plays on without stopping: where it stopped, while the
+ * sentence said there is the chosen one (or none is chosen yet); otherwise the start of the
+ * chosen sentence, `lead` seconds early.
+ */
+export function resumeFrom(lines: VideoLine[], chosen: number, time: number, lead: number): number {
+  if (chosen < 0 || lineAt(lines, time) === chosen) return time
+  return Math.max(0, lines[chosen].start - lead)
+}
+
 /** The sentence one step forward or back from another, kept inside the list. */
 export const stepFrom = (lines: VideoLine[], index: number, step: 1 | -1): number =>
   Math.min(lines.length - 1, Math.max(0, index < 0 ? 0 : index + step))

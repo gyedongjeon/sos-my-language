@@ -57,7 +57,7 @@ function loadApi(): Promise<void> {
 
 /**
  * YouTube's own player inside an element of the page. The video is streamed by YouTube; this
- * only steers it: play one part of the video and stop, or keep repeating it.
+ * only steers it: play one part of the video and stop, keep repeating it, or play on from a time.
  */
 export function useYouTubePlayer(element: Ref<HTMLElement | null>) {
   const ready = ref(false)
@@ -141,6 +141,17 @@ export function useYouTubePlayer(element: Ref<HTMLElement | null>) {
     player.playVideo()
   }
 
+  /** Plays the video on from `start`, without stopping at the end of a sentence. */
+  function playFrom(start: number) {
+    if (!player || !ready.value) return
+    part.value = null
+    // Known at once: YouTube reports the new time a moment later, and until then the sentence
+    // said at the old time would count as the one being said.
+    time.value = start
+    player.seekTo(start, true)
+    player.playVideo()
+  }
+
   function pause() {
     part.value = null
     player?.pauseVideo()
@@ -162,5 +173,5 @@ export function useYouTubePlayer(element: Ref<HTMLElement | null>) {
   }
 
   onBeforeUnmount(close)
-  return { ready, playing, time, error, part, open, playPart, pause, setRate, close }
+  return { ready, playing, time, error, part, open, playPart, playFrom, pause, setRate, close }
 }

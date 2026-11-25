@@ -66,6 +66,20 @@ describe('useYouTubePlayer', () => {
     expect(player.playing.value).toBe(false)
   })
 
+  it('plays on past the end of a sentence when it is started to play on', async () => {
+    const player = await openedPlayer()
+    player.playFrom(27)
+    FakePlayer.last.events.onStateChange?.({ data: PLAYING })
+    expect(player.time.value).toBe(27)
+
+    FakePlayer.last.now = 30.05
+    vi.advanceTimersByTime(100)
+
+    expect(FakePlayer.last.paused).toBe(false)
+    expect(player.playing.value).toBe(true)
+    expect(player.time.value).toBe(30.05)
+  })
+
   it("hides YouTube's own subtitles when the video is ready and each time it starts to play", async () => {
     const player = await openedPlayer()
     expect(FakePlayer.last.unloaded).toEqual(['captions'])
