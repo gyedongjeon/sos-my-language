@@ -103,7 +103,8 @@ before you choose. It then opens on the Settings page.
 ![The first start of SOS My Language: choosing between English and German](docs/images/language.png)
 
 1. **Your language**: pick the language the pages are shown in and your corrections are explained
-   in. It starts from your system language.
+   in. It starts from your system language. **Appearance**, the card after it, follows your system's
+   light or dark mode, or keeps the pages light or dark.
 2. **AI model and API key**: choose a provider and model and paste that provider's API key. It is
    saved and checked with a test request.
 
