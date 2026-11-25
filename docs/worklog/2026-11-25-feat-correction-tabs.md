@@ -44,4 +44,5 @@ Considered and left out:
   its `kind`).
 - `cd frontend && npm test`: 241 passed (2 new store tests: the tabs and their counts, and the
   tab opened first); `npm run build` passes.
-- Not done: looking at the tabs in the running app.
+- In the running app (dev servers on a copy of the data, with two pattern mistakes added to the
+  copy): both tabs were looked at during review and accepted.
