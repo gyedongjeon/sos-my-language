@@ -1,5 +1,5 @@
 ---
-title: Show the pages in every language a learner can choose
+title: "feat: show the pages in every language a learner can choose"
 date: 2026-11-25
 branch: feat/page-languages
 request-source: Claude Code session, 2026-11-25
