@@ -49,6 +49,7 @@ def test_corrections_are_listed_newest_first_with_where_they_came_from(client, t
     ]
     assert listed[1]["original"] == BEACH["original"] and listed[1]["explanation"] == BEACH["explanation"]
     assert all(c["practiced"] == 0 and c["practiced_at"] is None for c in listed)
+    assert all(c["kind"] == "expression" for c in listed)
 
 
 def test_saying_the_better_sentence_counts_as_practice(client, tutor):

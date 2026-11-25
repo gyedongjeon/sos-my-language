@@ -40,6 +40,8 @@ def test_a_sentence_got_wrong_is_listed_with_the_corrections(client, judge):
     )
     # It names the pattern it comes from, and shows the sentence that was asked for.
     assert mistake["pattern_id"] == "should-have" and mistake["conversation_id"] is None
+    # Like a correction of a conversation, it is a better way of saying something.
+    assert mistake["kind"] == "expression"
     assert mistake["title"] == "should have + past participle"
     assert mistake["prompt"] == ATTEMPT["prompt"]
     assert mistake["practiced"] == 0 and mistake["practiced_at"] is None

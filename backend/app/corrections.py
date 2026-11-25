@@ -1,5 +1,7 @@
 """Corrections from saved conversations, practised by saying the better sentence aloud."""
 
+from typing import Literal
+
 from fastapi import APIRouter, HTTPException, Response
 from pydantic import BaseModel, Field
 
@@ -16,6 +18,9 @@ class SavedCorrection(BaseModel):
 
     # "m" and the id of the learner's line it was made on, or "p" or "s" and the id of the mistake.
     id: str
+    # "expression" for a better way of saying something (a conversation's correction or a pattern
+    # mistake), to be learned; "shadowing" for a sentence of a video not said right after it.
+    kind: Literal["expression", "shadowing"]
     # Where it comes from: one of the three is set, or none for a sentence of a video since
     # deleted. `title` is the conversation's title, the pattern's formula, or the video's title.
     conversation_id: int | None = None
@@ -97,7 +102,7 @@ def list_corrections() -> list[SavedCorrection]:
     with get_connection() as conn:
         rows = conn.execute(
             """
-            SELECT 'm' || m.id AS id, m.conversation_id, NULL AS pattern_id, NULL AS video,
+            SELECT 'm' || m.id AS id, 'expression' AS kind, m.conversation_id, NULL AS pattern_id, NULL AS video,
                    NULL AS position, c.title, NULL AS prompt,
                    m.correction_original AS original, m.correction_improved AS improved,
                    m.correction_explanation AS explanation, m.practiced, m.practiced_at,
@@ -105,11 +110,11 @@ def list_corrections() -> list[SavedCorrection]:
             FROM messages m JOIN conversations c ON c.id = m.conversation_id
             WHERE m.correction_improved IS NOT NULL AND m.dismissed = 0 AND c.target = :target
             UNION ALL
-            SELECT 'p' || id, NULL, pattern_id, NULL, NULL, pattern, prompt, said, improved, explanation,
+            SELECT 'p' || id, 'expression', NULL, pattern_id, NULL, NULL, pattern, prompt, said, improved, explanation,
                    practiced, practiced_at, created_at, id
             FROM pattern_mistakes WHERE target = :target
             UNION ALL
-            SELECT 's' || s.id, NULL, NULL, l.video, l.position, s.title, NULL, s.said, s.improved,
+            SELECT 's' || s.id, 'shadowing', NULL, NULL, l.video, l.position, s.title, NULL, s.said, s.improved,
                    s.explanation, s.practiced, s.practiced_at, s.created_at, s.id
             FROM shadowing_mistakes s LEFT JOIN video_lines l ON l.id = s.line
             WHERE s.target = :target

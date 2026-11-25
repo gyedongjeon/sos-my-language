@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 import type { RouteLocationRaw } from 'vue-router'
 import { api } from '../api'
 import { t } from '../i18n'
-import type { SavedCorrection } from '../types'
+import type { CorrectionKind, SavedCorrection } from '../types'
 
 /** How the last try at saying a correction's better sentence went. */
 export interface Try {
@@ -37,10 +37,22 @@ export const useCorrectionsStore = defineStore('corrections', {
     checking: null as string | null,
     // The last try of this visit, by correction id.
     results: {} as Record<string, Try>,
+    // The tab shown: the expressions, or the sentences of videos.
+    kind: 'expression' as CorrectionKind,
   }),
   getters: {
-    /** How many corrections have never been said right. */
-    remaining: (state) => state.items.filter((c) => c.practiced === 0).length,
+    /** The corrections of the tab shown. */
+    ofKind: (state) => state.items.filter((c) => c.kind === state.kind),
+    /** How many corrections of the tab shown have never been said right. */
+    remaining(): number {
+      return this.ofKind.filter((c) => c.practiced === 0).length
+    },
+    /** How many of each kind have never been said right. */
+    left: (state): Record<CorrectionKind, number> => {
+      const left = { expression: 0, shadowing: 0 }
+      for (const c of state.items) if (c.practiced === 0) left[c.kind]++
+      return left
+    },
   },
   actions: {
     async load() {
@@ -48,6 +60,9 @@ export const useCorrectionsStore = defineStore('corrections', {
       this.error = ''
       try {
         this.items = await api<SavedCorrection[]>('/corrections')
+        // Open on a tab with something in it.
+        const other = this.kind === 'expression' ? 'shadowing' : 'expression'
+        if (!this.ofKind.length && this.items.some((c) => c.kind === other)) this.kind = other
       } catch (e) {
         this.error = (e as Error).message
       } finally {

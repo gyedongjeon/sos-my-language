@@ -212,6 +212,12 @@ const zhHant: Record<keyof typeof en, string> = {
   'corrections.intro':
     '這裡收集了對話中的訂正、句型練習時說錯的句子,以及跟讀影片時沒說對的句子。先聽聽更好的說法,再自己開口說,直到說對為止。',
   'corrections.none': '還沒有訂正。在對話、句型練習或跟讀影片句子時得到的訂正,都會出現在這裡。',
+  'corrections.expressions': '表達',
+  'corrections.shadowing': '跟讀',
+  'corrections.noExpressions':
+    '還沒有表達。對話和句型練習中訂正的句子會收集在這裡。',
+  'corrections.noShadowing':
+    '還沒有影片中的句子。跟讀影片時沒有全部聽清的句子會收集在這裡。',
   'corrections.counts': '待練習 {remaining} 句 · 已說對 {practiced} 句',
   'corrections.showPracticed': '顯示已經說對的句子',
   'corrections.allDone': '這裡的句子都至少說對過一次了。',

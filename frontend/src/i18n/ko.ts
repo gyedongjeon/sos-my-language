@@ -212,6 +212,12 @@ const ko: Record<keyof typeof en, string> = {
   'corrections.intro':
     '대화에서 받은 교정, 패턴 연습에서 틀린 문장, 영상을 따라 말할 때 다 들리지 않은 문장이 여기에 모입니다. 더 나은 문장을 듣고, 맞게 나올 때까지 직접 말해 보세요.',
   'corrections.none': '아직 교정이 없습니다. 대화나 패턴 연습을 하거나 영상의 문장을 따라 말하면 여기에 쌓입니다.',
+  'corrections.expressions': '표현',
+  'corrections.shadowing': '따라 말하기',
+  'corrections.noExpressions':
+    '아직 표현이 없습니다. 대화와 패턴 연습에서 고친 문장이 여기에 모입니다.',
+  'corrections.noShadowing':
+    '아직 영상 문장이 없습니다. 영상의 문장을 따라 말할 때 다 들리지 않은 문장이 여기에 모입니다.',
   'corrections.counts': '연습할 것 {remaining}개 · 맞게 말한 것 {practiced}개',
   'corrections.showPracticed': '이미 맞게 말한 것도 보기',
   'corrections.allDone': '여기 있는 문장은 모두 한 번 이상 맞게 말했습니다.',

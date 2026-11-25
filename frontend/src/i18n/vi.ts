@@ -218,6 +218,12 @@ const vi: Record<keyof typeof en, string> = {
     'Những chỗ được sửa trong các cuộc trò chuyện, những câu bạn nói sai khi luyện mẫu câu, và những câu trong video bạn nói theo chưa đúng. Hãy nghe câu đúng hơn, rồi tự nói cho đến khi nói đúng.',
   'corrections.none':
     'Chưa có câu nào cần sửa. Chúng sẽ xuất hiện ở đây khi bạn được sửa lỗi trong một cuộc trò chuyện, khi luyện mẫu câu, hoặc khi nói theo các câu trong video.',
+  'corrections.expressions': 'Cách diễn đạt',
+  'corrections.shadowing': 'Nói theo',
+  'corrections.noExpressions':
+    'Chưa có cách diễn đạt nào. Các câu đã sửa từ hội thoại và luyện mẫu câu được gom ở đây.',
+  'corrections.noShadowing':
+    'Chưa có câu nào từ video. Câu trong video mà bạn nói theo chưa được nghe trọn vẹn sẽ được giữ ở đây.',
   'corrections.counts': '{remaining} câu cần luyện · {practiced} câu đã nói đúng',
   'corrections.showPracticed': 'Hiện cả những câu đã nói đúng',
   'corrections.allDone': 'Mọi câu ở đây bạn đều đã nói đúng ít nhất một lần.',

@@ -220,6 +220,12 @@ const fr: Record<keyof typeof en, string> = {
     'Les corrections de vos conversations, les phrases manquées dans les exercices de structures et les phrases de vidéo que vous n’avez pas bien répétées. Écoutez la bonne phrase, puis dites-la vous-même jusqu’à ce qu’elle sorte juste.',
   'corrections.none':
     'Pas encore de corrections. Elles apparaissent ici au fil de vos conversations, de vos exercices de structures ou quand vous répétez les phrases d’une vidéo.',
+  'corrections.expressions': 'Expressions',
+  'corrections.shadowing': 'Répéter la phrase',
+  'corrections.noExpressions':
+    'Pas encore d’expressions. Les phrases améliorées de vos conversations et de l’entraînement aux structures sont réunies ici.',
+  'corrections.noShadowing':
+    'Pas encore de phrases de vidéos. Une phrase de vidéo qui n’a pas été entendue en entier quand vous l’avez répétée est gardée ici.',
   'corrections.counts': '{remaining} à travailler · {practiced} bien dites',
   'corrections.showPracticed': 'Afficher celles déjà bien dites',
   'corrections.allDone': 'Tout ce qui est ici a été bien dit au moins une fois.',

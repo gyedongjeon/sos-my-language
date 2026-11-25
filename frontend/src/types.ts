@@ -87,8 +87,13 @@ export interface ConversationSummary {
  * A sentence to practise again: a correction made in a saved conversation, or a sentence got
  * wrong in pattern practice.
  */
+/** A better way of saying something, to be learned (from a conversation or a pattern), or a
+ * sentence of a video not said right after it. */
+export type CorrectionKind = 'expression' | 'shadowing'
+
 export interface SavedCorrection {
   id: string
+  kind: CorrectionKind
   /** Where it comes from: one of the three is set, or none for a video since deleted. `title` is the conversation's, the pattern's, or the video's. */
   conversation_id: number | null
   pattern_id: string | null

@@ -220,6 +220,12 @@ const tr: Record<keyof typeof en, string> = {
     'Sohbetlerindeki düzeltmeler, kalıp çalışırken yanlış yaptığın cümleler ve bir videoda ardından doğru söyleyemediğin cümleler burada. Daha iyi cümleyi dinle, sonra doğru çıkana kadar kendin söyle.',
   'corrections.none':
     'Henüz düzeltme yok. Sohbet ederken, kalıp çalışırken ya da bir videonun cümlelerini ardından söylerken düzeltme aldıkça burada görünür.',
+  'corrections.expressions': 'İfadeler',
+  'corrections.shadowing': 'Ardından söyle',
+  'corrections.noExpressions':
+    'Henüz ifade yok. Konuşmalarından ve kalıp pratiğinden düzeltilmiş cümleler burada toplanır.',
+  'corrections.noShadowing':
+    'Henüz videolardan cümle yok. Bir videonun ardından söylediğinde tamamı duyulmayan cümle burada saklanır.',
   'corrections.counts': '{remaining} çalışılacak · {practiced} doğru söylendi',
   'corrections.showPracticed': 'Doğru söylenmiş olanları da göster',
   'corrections.allDone': 'Buradaki her şey en az bir kez doğru söylendi.',

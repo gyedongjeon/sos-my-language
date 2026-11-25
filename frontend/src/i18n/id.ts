@@ -220,6 +220,12 @@ const id: Record<keyof typeof en, string> = {
     'Di sini terkumpul koreksi dari percakapanmu, kalimat yang salah saat latihan pola, dan kalimat video yang belum tepat saat kamu tirukan. Dengarkan kalimat yang lebih baik, lalu ucapkan sendiri sampai benar.',
   'corrections.none':
     'Belum ada koreksi. Koreksi muncul di sini saat kamu mendapatkannya dalam percakapan, latihan pola, atau ketika menirukan kalimat video.',
+  'corrections.expressions': 'Ungkapan',
+  'corrections.shadowing': 'Tirukan',
+  'corrections.noExpressions':
+    'Belum ada ungkapan. Kalimat yang diperbaiki dari percakapan dan latihan pola dikumpulkan di sini.',
+  'corrections.noShadowing':
+    'Belum ada kalimat dari video. Kalimat video yang tidak terdengar utuh saat kamu menirukannya disimpan di sini.',
   'corrections.counts': '{remaining} perlu dilatih · {practiced} sudah benar',
   'corrections.showPracticed': 'Tampilkan juga yang sudah benar',
   'corrections.allDone': 'Semua yang ada di sini sudah pernah kamu ucapkan dengan benar.',
