@@ -4,7 +4,7 @@
   "description": "Speaking practice for the languages you learn, running on your own machine.",
   "private": true,
   "license": "MIT",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "main": "dist/main.js",
   "scripts": {
     "frontend": "npm --prefix ../frontend install && npm --prefix ../frontend run build",

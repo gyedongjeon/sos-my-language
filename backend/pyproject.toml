@@ -1,6 +1,6 @@
 [project]
 name = "sos-my-language-backend"
-version = "0.2.0"
+version = "0.3.0"
 license = "MIT"
 # Raise the upper bound only once every locked package has wheels for the new Python
 # (onnxruntime had none for 3.15). The Python actually used is pinned in .python-version.
