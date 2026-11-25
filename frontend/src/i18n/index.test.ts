@@ -1,6 +1,6 @@
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it } from 'vitest'
-import { useSettingsStore } from '../stores/settings'
+import { LANGUAGES, useSettingsStore } from '../stores/settings'
 import { languageName, modelName, PAGE_LANGUAGES, t, tc, voiceLabel } from './index'
 
 beforeEach(() => setActivePinia(createPinia()))
@@ -17,10 +17,17 @@ describe('the texts of the pages', () => {
     expect(t('nav.history')).toBe('기록')
   })
 
-  it('are in English for a language the pages are not written in', () => {
+  it("are written in every language a learner's own can be", () => {
+    expect(PAGE_LANGUAGES).toEqual(LANGUAGES.map((l) => l.name))
     yours('Japanese')
-    expect(PAGE_LANGUAGES).not.toContain('Japanese')
+    expect(t('nav.history')).not.toBe('History')
+    expect(tc('Small talk')).not.toBe('Small talk')
+  })
+
+  it('are in English for a language the pages are not written in', () => {
+    yours('Esperanto')
     expect(t('nav.history')).toBe('History')
+    expect(tc('Small talk')).toBe('Small talk')
   })
 
   it('have their names filled in', () => {

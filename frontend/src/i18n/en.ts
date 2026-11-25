@@ -1,4 +1,4 @@
-// Every text of the pages, in English. The other languages (`ko.ts`) have the same keys.
+// Every text of the pages, in English. The other languages (`ko.ts`, `ja.ts`, ...) have the same keys.
 // "{name}" is filled in; "one | many" is chosen by the number given as `n`.
 export default {
   'lang.en': 'English',
@@ -251,7 +251,7 @@ export default {
   'settings.yourLanguageBody':
     'The pages are shown and corrections are explained in this language. The conversation and the corrected sentences stay in {language}.',
   'settings.yourLanguageNote':
-    "Starts from your browser's language. Saved as soon as you pick one. The pages are in English and Korean so far; with another language they are shown in English, and corrections are still explained in the language you pick.",
+    "Starts from your browser's language. Saved as soon as you pick one. Most languages of the pages were translated by AI and have not been checked by a native speaker, so a text may read a little oddly.",
   'settings.voiceBody':
     'The voice your partner speaks {language} with. Every voice runs on this computer; one that is not there yet is downloaded the first time you choose it.',
   'settings.voice': 'Voice',
