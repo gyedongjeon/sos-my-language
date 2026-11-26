@@ -14,6 +14,9 @@ asked for:
 - Drop the line on what the word means in its sentence ("여기서는 …", "이 문장에서는 …") and
   show a translation of the sentence instead.
 - Show the word in another color, both in the sentence and in the translation, so it stands out.
+- Color the same kind of words in the translation each time. One was colored with its particle
+  ("피질의") and another without ("엽").
+- Show the IPA of a word for English, and for German too, since German dictionaries give it.
 
 ## Changes
 
@@ -32,9 +35,18 @@ asked for:
     It translates the whole sentence into the learner's language (`translation`) and names the
     words of that translation that stand for the tapped word (`in_translation`), copied as they
     are written there. This stays one request per word.
+  - `in_translation` leaves out a particle or postposition that only marks the word's role in
+    the sentence, while a verb or adjective keeps its endings. The prompt had no such rule, so
+    the model took the particle with the word in one sentence and not in another. The rule is
+    written for any language, as the code must not name one.
   - `in_translation` is trimmed, and left empty when it is not in the translation.
   - An explanation kept before this change has no translation, so it is asked for again.
   - When the learner's language is the language being learned, the translation is empty.
+- **IPA**: the model gives how the phrase, or else the dictionary form, is said
+  (`pronunciation`), in IPA as a learner's dictionary of the language gives it. It is asked for
+  every language, since English and German dictionaries both give it. Slashes or brackets
+  around it are taken off, and the page shows it between slashes. An explanation kept without a
+  pronunciation is asked for again.
 - **Table**: a new `saved_words` table. It keeps the word, its sentence, the headword (the
   phrase, or else the dictionary form), and the explanation, in the language it was explained
   in. It carries `target` and is added to the test of tables that do.
@@ -45,6 +57,7 @@ asked for:
   sentence may mean something else anyway. Saved again from the same sentence, a word is kept
   once.
 - **Frontend**:
+  - The word popover and the Words page show the IPA under or next to the headword.
   - The word popover shows the translation, with the words that stand for the tapped word in
     the accent color, in place of the note.
   - The word popover has a "Save" button. Once the word is saved it shows "✓ Saved", and
@@ -72,11 +85,20 @@ asked for:
 - `cd backend && uv run pytest`: 332 passed. In `tests/test_word_lookup.py`, new tests cover:
   - an explanation kept without a translation is asked for again;
   - words said to be in the translation that are not there are left out;
-  - those words are given without the spaces around them.
+  - those words are given without the spaces around them;
+  - an explanation kept without a pronunciation is asked for again;
+  - a pronunciation is given without the slashes or brackets around it.
 - `uv run --env-file .env pytest -m live -k "tapped_word or two_parts"`: 2 passed. The Korean
   translation is checked, and so is that its words for "cortex" are found in it. On real
   requests, "lobes" was marked as "엽", German "fängt" in "Der Film fängt um acht Uhr an." as
-  "시작합니다", and "give" in "I had to give up smoking last year." as "끊어야만".
+  "시작합니다", and "give" in "I had to give up smoking last year." as "끊어야만". The particle
+  of "피질의" was left in.
+- With the rule on particles, nine words were tried in Korean and Japanese:
+  - Nouns came without their particles: "피질", "엽", "책", "개", "大脳皮質", "犬".
+  - Verbs were marked as "끊어야" and "시작합니다" in one run, and only as their stems ("끊",
+    "시작") in another. Both are inside the translation, so both are colored.
+- Real IPA: "cortex" ˈkɔːrteks, "give up" ɡɪv ʌp, German "anfangen" ˈanˌfaŋən, "Hund" hʊnt,
+  "Mädchen" ˈmɛːtçən. The live test now checks that a pronunciation is given.
 - New `tests/test_word_list.py` covers:
   - a saved word is listed with its meaning and sentence;
   - a word saved again from its sentence is kept once;
