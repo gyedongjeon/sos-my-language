@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import { api } from '../api'
+import MarkedText from '../components/MarkedText.vue'
 import MorseSignal from '../components/MorseSignal.vue'
 import { useSpeech } from '../composables/useSpeech'
 import { t } from '../i18n'
@@ -63,8 +64,8 @@ onMounted(async () => {
               </button>
             </div>
             <p class="font-medium">{{ w.meaning }}</p>
-            <p class="text-sm italic text-base-content/70">{{ w.sentence }}</p>
-            <p v-if="w.in_context" class="text-sm text-base-content/60">{{ w.in_context }}</p>
+            <MarkedText tag="p" class="text-sm italic text-base-content/70" :text="w.sentence" :part="w.word" whole />
+            <MarkedText v-if="w.translation" tag="p" class="text-sm text-base-content/60" :text="w.translation" :part="w.in_translation" />
           </div>
         </li>
       </ul>

@@ -9,7 +9,8 @@ const CORTEX: WordLookup = {
   phrase: '',
   part_of_speech: '명사',
   meaning: '피질',
-  in_context: '뇌의 바깥층',
+  translation: '그것은 피질의 네 엽 모두와 관련됩니다.',
+  in_translation: '피질',
   saved: null,
 }
 const SENTENCE = 'It involves all four lobes of the cortex.'

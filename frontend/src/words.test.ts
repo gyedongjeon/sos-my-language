@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { splitWords } from './words'
+import { markPart, splitWords } from './words'
 
 const words = (text: string) => splitWords(text).filter((p) => p.word).map((p) => p.text)
 
@@ -32,5 +32,32 @@ describe('splitWords', () => {
 
   it('does not make a word of a number', () => {
     expect(words('At 8 or 10am')).toEqual(['At', 'or', '10am'])
+  })
+})
+
+describe('markPart', () => {
+  it('marks the tapped word where it stands as a word, not inside another', () => {
+    expect(markPart('A cat and a dog.', 'a', true)).toEqual([
+      { text: 'A', marked: true },
+      { text: ' cat and a dog.', marked: false },
+    ])
+    expect(markPart('Cats, not the cat.', 'cat', true)).toEqual([
+      { text: 'Cats, not the ', marked: false },
+      { text: 'cat', marked: true },
+      { text: '.', marked: false },
+    ])
+  })
+
+  it('marks words of a translation as they are written in it', () => {
+    expect(markPart('그것은 피질의 네 엽 모두를 포함합니다.', '네 엽')).toEqual([
+      { text: '그것은 피질의 ', marked: false },
+      { text: '네 엽', marked: true },
+      { text: ' 모두를 포함합니다.', marked: false },
+    ])
+  })
+
+  it('leaves the text unmarked when the part is not in it', () => {
+    expect(markPart('Der Film fängt an.', 'fangen', true)).toEqual([{ text: 'Der Film fängt an.', marked: false }])
+    expect(markPart('영화가 시작합니다.', '')).toEqual([{ text: '영화가 시작합니다.', marked: false }])
   })
 })

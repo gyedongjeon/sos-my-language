@@ -271,7 +271,10 @@ export interface WordLookup {
   phrase: string
   part_of_speech: string
   meaning: string
-  in_context: string
+  // The sentence in the learner's language ("" when that is the language learned), and the
+  // words of it that stand for the tapped word.
+  translation: string
+  in_translation: string
   // The id it is saved as in the learner's list of words, or null.
   saved: number | null
 }
@@ -287,6 +290,7 @@ export interface SavedWord {
   phrase: string
   part_of_speech: string
   meaning: string
-  in_context: string
+  translation: string
+  in_translation: string
   saved_at: string
 }
