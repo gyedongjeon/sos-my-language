@@ -404,6 +404,17 @@ CREATE TABLE IF NOT EXISTS line_translations (
     PRIMARY KEY (line, language)
 );
 
+-- A word the learner tapped in a sentence, as the model explained it in their language (JSON);
+-- one for each sentence, so the meaning is the one the word has there.
+CREATE TABLE IF NOT EXISTS word_lookups (
+    target TEXT NOT NULL,
+    language TEXT NOT NULL,
+    word TEXT NOT NULL,
+    sentence TEXT NOT NULL,
+    explained TEXT NOT NULL,
+    PRIMARY KEY (target, language, word, sentence)
+);
+
 -- A sentence pattern the learner made from a sentence of a video. The sentence is kept as its
 -- example, so the pattern outlives the video.
 CREATE TABLE IF NOT EXISTS own_patterns (

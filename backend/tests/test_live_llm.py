@@ -241,3 +241,21 @@ def test_the_opening_line_of_an_own_german_topic_is_in_german(client, german):
     assert response.status_code == 201, response.text
     opener = response.json()["opener"]
     assert GERMAN_WORD.search(opener) and not re.search("[가-힣]", opener)
+
+
+def test_a_tapped_word_is_explained_in_the_chosen_language(client):
+    client.put("/api/settings", json={"feedback_language": "Korean"})
+    response = client.post(
+        "/api/lookup",
+        json={"word": "cortex", "sentence": "It involves activation and all four lobes of the cortex."},
+    )
+    assert response.status_code == 200, response.text
+    found = response.json()
+    assert found["lemma"].strip() and not re.search("[가-힣]", found["lemma"])
+    assert re.search("[가-힣]", found["meaning"]) and re.search("[가-힣]", found["in_context"])
+
+
+def test_a_word_of_a_verb_in_two_parts_names_the_whole_verb(client, german):
+    response = client.post("/api/lookup", json={"word": "fängt", "sentence": "Der Film fängt um acht Uhr an."})
+    assert response.status_code == 200, response.text
+    assert "anfangen" in response.json()["phrase"]

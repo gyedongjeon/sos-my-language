@@ -22,6 +22,7 @@ from .topics import router as topics_router
 from .transcribe import transcribe
 from .translations import router as translations_router
 from .videos import router as videos_router
+from .word_lookup import router as word_lookup_router
 
 
 @asynccontextmanager
@@ -42,6 +43,7 @@ app.include_router(topics_router)
 app.include_router(videos_router)
 app.include_router(similar_videos_router)
 app.include_router(translations_router)
+app.include_router(word_lookup_router)
 
 
 class TranscriptResponse(BaseModel):
