@@ -80,19 +80,19 @@ def _explain(word: str, sentence: str, language: str) -> Explained:
     return found
 
 
-@router.post("/lookup", response_model=WordLookup)
-def look_up(body: LookupRequest) -> WordLookup:
-    """What a word means in a sentence, in the learner's language; kept once explained."""
-    key = (current_language().code, feedback_language(), body.word, body.sentence)
+def explanation(word: str, sentence: str) -> Explained:
+    """What a word means in a sentence, in the learner's language; kept once explained, so a
+    word is asked for once in each sentence. Raises HTTPException 502 when the model fails."""
+    key = (current_language().code, feedback_language(), word, sentence)
     with get_connection() as conn:
         row = conn.execute(
             "SELECT explained FROM word_lookups WHERE target = ? AND language = ? AND word = ? AND sentence = ?",
             key,
         ).fetchone()
     if row:
-        return WordLookup(word=body.word, **Explained.model_validate_json(row["explained"]).model_dump())
+        return Explained.model_validate_json(row["explained"])
     try:
-        found = _explain(body.word, body.sentence, key[1])
+        found = _explain(word, sentence, key[1])
     except LLMError as e:
         raise HTTPException(status_code=502, detail=f"Could not look up the word: {e}") from e
     with get_connection() as conn:
@@ -100,4 +100,10 @@ def look_up(body: LookupRequest) -> WordLookup:
             "INSERT OR REPLACE INTO word_lookups (target, language, word, sentence, explained) VALUES (?, ?, ?, ?, ?)",
             (*key, found.model_dump_json()),
         )
-    return WordLookup(word=body.word, **found.model_dump())
+    return found
+
+
+@router.post("/lookup", response_model=WordLookup)
+def look_up(body: LookupRequest) -> WordLookup:
+    """What a word means in a sentence, in the learner's language."""
+    return WordLookup(word=body.word, **explanation(body.word, body.sentence).model_dump())
