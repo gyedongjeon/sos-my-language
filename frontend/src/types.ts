@@ -267,6 +267,8 @@ export interface WordLookup {
   word: string
   // The dictionary form, in the language being learned.
   lemma: string
+  // How the phrase or the dictionary form is said, in IPA, without slashes around it; or "".
+  pronunciation: string
   // The phrase the word belongs to in that sentence, or "".
   phrase: string
   part_of_speech: string
@@ -287,6 +289,7 @@ export interface SavedWord {
   word: string
   sentence: string
   lemma: string
+  pronunciation: string
   phrase: string
   part_of_speech: string
   meaning: string
