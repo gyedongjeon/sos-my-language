@@ -296,6 +296,10 @@ const zhHant: Record<keyof typeof en, string> = {
   'settings.voiceFailed': '無法更換聲音:{error}',
   'settings.themeFailed': '無法儲存主題：{error}',
   'settings.yourLanguageFailed': '無法儲存語言:{error}',
+
+  'lookup.word': '查看「{word}」的意思',
+  'lookup.looking': '正在查詢…',
+  'lookup.dialog': '詞義',
 }
 
 export default zhHant

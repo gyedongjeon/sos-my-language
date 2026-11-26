@@ -305,6 +305,10 @@ const tr: Record<keyof typeof en, string> = {
   'settings.voiceFailed': 'Ses değiştirilemedi: {error}',
   'settings.themeFailed': 'Görünüm kaydedilemedi: {error}',
   'settings.yourLanguageFailed': 'Dil kaydedilemedi: {error}',
+
+  'lookup.word': '“{word}” kelimesine bak',
+  'lookup.looking': 'Aranıyor…',
+  'lookup.dialog': 'Kelimenin anlamı',
 }
 
 export default tr

@@ -261,3 +261,15 @@ export interface LearningLanguage {
   sample: string
   chosen: boolean
 }
+
+// A word the learner tapped, explained in their own language for the sentence it was in.
+export interface WordLookup {
+  word: string
+  // The dictionary form, in the language being learned.
+  lemma: string
+  // The phrase the word belongs to in that sentence, or "".
+  phrase: string
+  part_of_speech: string
+  meaning: string
+  in_context: string
+}

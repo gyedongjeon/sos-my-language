@@ -305,6 +305,10 @@ const it: Record<keyof typeof en, string> = {
   'settings.voiceFailed': 'Non è stato possibile cambiare la voce: {error}',
   'settings.themeFailed': 'Impossibile salvare l’aspetto: {error}',
   'settings.yourLanguageFailed': 'Non è stato possibile salvare la lingua: {error}',
+
+  'lookup.word': 'Cerca «{word}»',
+  'lookup.looking': 'Ricerca in corso…',
+  'lookup.dialog': 'Significato di una parola',
 }
 
 export default it

@@ -306,6 +306,10 @@ const uk: Record<keyof typeof en, string> = {
   'settings.voiceFailed': 'Не вдалося змінити голос: {error}',
   'settings.themeFailed': 'Не вдалося зберегти оформлення: {error}',
   'settings.yourLanguageFailed': 'Не вдалося зберегти мову: {error}',
+
+  'lookup.word': 'Значення «{word}»',
+  'lookup.looking': 'Шукаємо…',
+  'lookup.dialog': 'Значення слова',
 }
 
 export default uk

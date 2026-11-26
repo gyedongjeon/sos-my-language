@@ -304,6 +304,10 @@ const hi: Record<keyof typeof en, string> = {
   'settings.voiceFailed': 'आवाज़ नहीं बदली जा सकी: {error}',
   'settings.themeFailed': 'थीम सहेजी नहीं जा सकी: {error}',
   'settings.yourLanguageFailed': 'भाषा सेव नहीं हो सकी: {error}',
+
+  'lookup.word': '“{word}” का अर्थ देखें',
+  'lookup.looking': 'खोजा जा रहा है…',
+  'lookup.dialog': 'शब्द का अर्थ',
 }
 
 export default hi

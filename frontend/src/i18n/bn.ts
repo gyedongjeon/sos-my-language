@@ -304,6 +304,10 @@ const bn: Record<keyof typeof en, string> = {
   'settings.voiceFailed': 'কণ্ঠ বদলানো যায়নি: {error}',
   'settings.themeFailed': 'থিম সংরক্ষণ করা যায়নি: {error}',
   'settings.yourLanguageFailed': 'ভাষা সংরক্ষণ করা যায়নি: {error}',
+
+  'lookup.word': '“{word}”-এর অর্থ দেখুন',
+  'lookup.looking': 'খোঁজা হচ্ছে…',
+  'lookup.dialog': 'শব্দের অর্থ',
 }
 
 export default bn

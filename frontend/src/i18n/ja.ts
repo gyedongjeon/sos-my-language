@@ -303,6 +303,10 @@ const ja: Record<keyof typeof en, string> = {
   'settings.voiceFailed': '声を変更できませんでした: {error}',
   'settings.themeFailed': 'テーマを保存できませんでした: {error}',
   'settings.yourLanguageFailed': '言語を保存できませんでした: {error}',
+
+  'lookup.word': '「{word}」の意味を見る',
+  'lookup.looking': '調べています…',
+  'lookup.dialog': '単語の意味',
 }
 
 export default ja

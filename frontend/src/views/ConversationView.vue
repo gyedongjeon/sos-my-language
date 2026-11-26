@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import LookupText from '../components/LookupText.vue'
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { api } from '../api'
 import CorrectionCard from '../components/CorrectionCard.vue'
@@ -102,7 +103,9 @@ onBeforeUnmount(() => speech.stop())
         <template v-for="(message, i) in messages" :key="i">
           <div class="chat" :class="message.role === 'tutor' ? 'chat-start' : 'chat-end'">
             <div class="chat-header text-xs text-base-content/60">{{ message.role === 'tutor' ? t('common.partner') : t('common.you') }}</div>
-            <div class="chat-bubble" :class="message.role === 'learner' ? 'chat-bubble-primary' : ''">{{ message.text }}</div>
+            <div class="chat-bubble" :class="message.role === 'learner' ? 'chat-bubble-primary' : ''">
+              <LookupText v-if="message.role === 'tutor'" :text="message.text" /><template v-else>{{ message.text }}</template>
+            </div>
             <div v-if="message.role === 'tutor'" class="chat-footer mt-1">
               <button class="btn btn-xs" @click="speech.speak(message.text)">{{ t('common.hearIt') }}</button>
             </div>

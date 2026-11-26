@@ -294,6 +294,10 @@ const zhHans: Record<keyof typeof en, string> = {
   'settings.voiceFailed': '更换声音失败：{error}',
   'settings.themeFailed': '无法保存主题：{error}',
   'settings.yourLanguageFailed': '保存语言失败：{error}',
+
+  'lookup.word': '查看“{word}”的意思',
+  'lookup.looking': '正在查询…',
+  'lookup.dialog': '词义',
 }
 
 export default zhHans

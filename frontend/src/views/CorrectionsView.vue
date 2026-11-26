@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import LookupText from '../components/LookupText.vue'
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import MorseSignal from '../components/MorseSignal.vue'
 import { micProblem, useRecorder } from '../composables/useRecorder'
@@ -121,7 +122,7 @@ onBeforeUnmount(() => {
           <div class="card-body gap-2">
             <template v-if="c.kind === 'shadowing'">
               <!-- What was heard is not a wrong sentence, so it is not crossed out. -->
-              <p class="text-lg font-medium">{{ c.improved }}</p>
+              <p class="text-lg font-medium"><LookupText :text="c.improved" /></p>
               <p class="text-sm">
                 <span class="text-base-content/60">{{ t('corrections.heard') }}</span> {{ c.original }}
               </p>
@@ -130,7 +131,7 @@ onBeforeUnmount(() => {
             <template v-else>
               <p v-if="c.prompt" class="text-sm text-base-content/70">{{ c.prompt }}</p>
               <p class="text-base-content/60 line-through">{{ c.original }}</p>
-              <p class="text-lg font-medium text-success">{{ c.improved }}</p>
+              <p class="text-lg font-medium text-success"><LookupText :text="c.improved" /></p>
               <p class="text-sm text-base-content/70">{{ c.explanation }}</p>
             </template>
 
