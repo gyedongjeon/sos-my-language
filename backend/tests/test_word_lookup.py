@@ -9,6 +9,7 @@ from app.llm import LLMError
 
 CORTEX = {
     "lemma": "cortex",
+    "pronunciation": "ˈkɔːteks",
     "phrase": "",
     "part_of_speech": "명사",
     "meaning": "피질, 대뇌 피질",
@@ -75,6 +76,27 @@ def test_words_said_to_be_in_the_translation_that_are_not_there_are_left_out(cli
 def test_the_words_in_the_translation_are_given_without_spaces_around_them(client, model):
     model.reply = {**CORTEX, "in_translation": " 대뇌 피질 "}
     assert look_up(client).json()["in_translation"] == "대뇌 피질"
+
+
+def test_an_explanation_kept_without_a_pronunciation_is_asked_for_again(client, model):
+    from app.db import get_connection
+
+    old = {key: value for key, value in CORTEX.items() if key != "pronunciation"}
+    client.put("/api/settings", json={"feedback_language": "Korean"})
+    with get_connection() as conn:
+        conn.execute(
+            "INSERT INTO word_lookups (target, language, word, sentence, explained) VALUES ('en', 'Korean', 'cortex', ?, ?)",
+            (SENTENCE, json.dumps(old)),
+        )
+    assert look_up(client).json()["pronunciation"] == CORTEX["pronunciation"]
+    assert len(model.calls) == 1
+
+
+def test_a_pronunciation_is_given_without_the_marks_around_it(client, model):
+    model.reply = {**CORTEX, "pronunciation": " /ˈkɔːteks/ "}
+    assert look_up(client).json()["pronunciation"] == "ˈkɔːteks"
+    model.reply = {**CORTEX, "pronunciation": "[ˈfaŋən]"}
+    assert look_up(client, "lobes").json()["pronunciation"] == "ˈfaŋən"
 
 
 def test_a_word_is_asked_for_again_in_another_feedback_language(client, model):

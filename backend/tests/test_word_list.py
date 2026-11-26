@@ -13,6 +13,7 @@ def test_a_saved_word_is_listed_with_its_meaning_and_sentence(client, model):
     saved = response.json()
     assert saved["headword"] == "cortex"
     assert saved["meaning"] == CORTEX["meaning"]
+    assert saved["pronunciation"] == CORTEX["pronunciation"]
     assert saved["sentence"] == SENTENCE
     assert client.get("/api/words").json() == [saved]
 

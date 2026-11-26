@@ -29,6 +29,8 @@ class LookupRequest(BaseModel):
 
 class Explained(BaseModel):
     lemma: str = Field(min_length=1)
+    # How the headword is said, in the International Phonetic Alphabet, without marks around it.
+    pronunciation: str = ""
     phrase: str
     part_of_speech: str
     meaning: str = Field(min_length=1)
@@ -52,6 +54,9 @@ meaning it has in that sentence.
 - lemma: the word's dictionary form in {target}, as a dictionary lists it, with what a learner
   needs to use it that the language has: for a noun its article and plural, for a verb with
   irregular forms those forms. Just the form, nothing else, when there is nothing to add.
+- pronunciation: how the phrase (when there is one) or else the dictionary form is said, in the
+  International Phonetic Alphabet as a learner's dictionary of {target} gives it, with its stress
+  marks; just the symbols, without slashes or brackets around them.
 - phrase: when the word means what it does here only together with other words of the sentence
   (a verb whose parts are apart, a phrasal verb, an idiom), that phrase in its dictionary form
   in {target}; otherwise an empty string. When there is one, explain the phrase, not the word.
@@ -62,6 +67,8 @@ meaning it has in that sentence.
   tone; an empty string when {language} is {target}.
 - in_translation: the words of your translation that stand for the word (or its phrase), copied
   exactly as they are written in it; an empty string when there are none or no translation.
+  Leave out any particle or postposition attached to them that only marks their role in the
+  sentence (a case or topic marker); a verb or adjective keeps its endings.
 
 Write part_of_speech, meaning, and translation in {language}. {only_quoted}
 
@@ -84,6 +91,7 @@ def _explain(word: str, sentence: str, language: str) -> Explained:
         reasoning_effort="low",
     )
     found = parse_json_reply(reply, Explained)
+    found.pronunciation = found.pronunciation.strip().strip("/[]").strip()
     found.meaning = in_own_language(found.meaning, language)
     if found.translation:
         found.translation = in_own_language(found.translation, language)
@@ -104,8 +112,9 @@ def explanation(word: str, sentence: str) -> Explained:
             key,
         ).fetchone()
     kept = Explained.model_validate_json(row["explained"]) if row else None
-    # One kept before the sentence was translated is asked for again.
-    if kept and "translation" in kept.model_fields_set:
+    # One kept before the sentence was translated, or before it had a pronunciation, is asked
+    # for again.
+    if kept and {"translation", "pronunciation"} <= kept.model_fields_set:
         return kept
     try:
         found = _explain(word, sentence, key[1])
@@ -139,7 +148,10 @@ class SavedWord(Explained):
     saved_at: str
 
 
-SAVED = "id, headword, word, sentence, lemma, phrase, part_of_speech, meaning, translation, in_translation, saved_at"
+SAVED = (
+    "id, headword, word, sentence, lemma, pronunciation, phrase, part_of_speech, meaning, translation, in_translation,"
+    " saved_at"
+)
 
 
 @router.get("/words", response_model=list[SavedWord])
@@ -162,10 +174,11 @@ def save_word(body: LookupRequest) -> SavedWord:
     with get_connection() as conn:
         conn.execute(
             """INSERT INTO saved_words
-                   (target, headword, word, sentence, lemma, phrase, part_of_speech, meaning, translation, in_translation)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                   (target, headword, word, sentence, lemma, pronunciation, phrase, part_of_speech, meaning, translation,
+                    in_translation)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                ON CONFLICT (target, word, sentence) DO UPDATE SET
-                   headword = excluded.headword, lemma = excluded.lemma,
+                   headword = excluded.headword, lemma = excluded.lemma, pronunciation = excluded.pronunciation,
                    phrase = excluded.phrase, part_of_speech = excluded.part_of_speech,
                    meaning = excluded.meaning, translation = excluded.translation,
                    in_translation = excluded.in_translation""",
@@ -175,6 +188,7 @@ def save_word(body: LookupRequest) -> SavedWord:
                 body.word,
                 body.sentence,
                 found.lemma,
+                found.pronunciation,
                 found.phrase,
                 found.part_of_speech,
                 found.meaning,

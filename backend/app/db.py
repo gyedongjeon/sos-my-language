@@ -427,6 +427,7 @@ CREATE TABLE IF NOT EXISTS saved_words (
     word TEXT NOT NULL,
     sentence TEXT NOT NULL,
     lemma TEXT NOT NULL,
+    pronunciation TEXT NOT NULL,
     phrase TEXT NOT NULL,
     part_of_speech TEXT NOT NULL,
     meaning TEXT NOT NULL,
