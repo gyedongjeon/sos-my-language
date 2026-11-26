@@ -6,6 +6,7 @@ import { useLookupStore } from './lookup'
 const CORTEX: WordLookup = {
   word: 'cortex',
   lemma: 'cortex',
+  forms: 'cortices',
   pronunciation: 'ˈkɔːteks',
   phrase: '',
   part_of_speech: '명사',

@@ -83,7 +83,11 @@ watch(() => route.fullPath, close)
         </button>
       </div>
       <template v-else-if="lookup.found">
-        <p v-if="lookup.found.pronunciation" class="text-base-content/60">/{{ lookup.found.pronunciation }}/</p>
+        <p v-if="lookup.found.pronunciation || lookup.found.forms" class="text-base-content/60">
+          <span v-if="lookup.found.pronunciation">/{{ lookup.found.pronunciation }}/</span>
+          <span v-if="lookup.found.pronunciation && lookup.found.forms"> · </span>
+          <span v-if="lookup.found.forms">{{ lookup.found.forms }}</span>
+        </p>
         <p v-if="lookup.found.phrase && lookup.found.phrase !== lookup.found.lemma" class="text-base-content/60">
           {{ lookup.found.word }} · {{ lookup.found.lemma }}
         </p>

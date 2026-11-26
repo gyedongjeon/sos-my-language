@@ -57,9 +57,10 @@ onMounted(async () => {
             <div class="flex flex-wrap items-center gap-2">
               <h2 class="text-lg font-semibold">{{ w.headword }}</h2>
               <span v-if="w.pronunciation" class="text-base-content/60">/{{ w.pronunciation }}/</span>
+              <span v-if="w.forms" class="text-sm text-base-content/60">{{ w.forms }}</span>
               <span v-if="w.phrase && w.phrase !== w.lemma" class="text-sm text-base-content/60">{{ w.lemma }}</span>
               <span v-if="w.part_of_speech" class="badge badge-ghost badge-sm">{{ w.part_of_speech }}</span>
-              <button class="btn btn-ghost btn-xs" @click="speech.speak(w.phrase || w.word)">{{ t('common.hearIt') }}</button>
+              <button class="btn btn-ghost btn-xs" @click="speech.speak(w.headword)">{{ t('common.hearIt') }}</button>
               <button class="btn btn-ghost btn-xs ml-auto" :aria-label="t('words.remove', { word: w.headword })" @click="remove(w.id)">
                 {{ t('common.delete') }}
               </button>
