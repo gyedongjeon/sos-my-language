@@ -39,7 +39,7 @@ def test_a_tapped_word_is_explained_in_the_feedback_language(client, model):
     client.put("/api/settings", json={"feedback_language": "Korean"})
     response = look_up(client)
     assert response.status_code == 200, response.text
-    assert response.json() == {"word": "cortex", **CORTEX}
+    assert response.json() == {"word": "cortex", "saved": None, **CORTEX}
     system, user = model.calls[0]
     assert "Korean" in system and "English" in system
     # The sentence is sent with the word, so the meaning is the one it has there.

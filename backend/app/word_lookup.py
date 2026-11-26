@@ -1,7 +1,8 @@
 """A word the learner taps in a sentence of the language being learned, explained in their own
 language by the model. The sentence is sent with it, so the meaning given is the one the word
 has there, and a word that is part of a phrase (a verb in two parts, an idiom) is explained as
-that phrase. Each explanation is kept, so a word is looked up once in each sentence."""
+that phrase. Each explanation is kept, so a word is looked up once in each sentence. A word can
+be saved to the learner's list of words, with its sentence and what it means there."""
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field, model_validator
@@ -36,6 +37,8 @@ class Explained(BaseModel):
 
 class WordLookup(Explained):
     word: str
+    # The id this word in this sentence is saved as in the learner's list, or None.
+    saved: int | None = None
 
 
 PROMPT = """\
@@ -105,5 +108,78 @@ def explanation(word: str, sentence: str) -> Explained:
 
 @router.post("/lookup", response_model=WordLookup)
 def look_up(body: LookupRequest) -> WordLookup:
-    """What a word means in a sentence, in the learner's language."""
-    return WordLookup(word=body.word, **explanation(body.word, body.sentence).model_dump())
+    """What a word means in a sentence, in the learner's language, and whether it is saved."""
+    found = explanation(body.word, body.sentence)
+    with get_connection() as conn:
+        row = conn.execute(
+            "SELECT id FROM saved_words WHERE target = ? AND word = ? AND sentence = ?",
+            (current_language().code, body.word, body.sentence),
+        ).fetchone()
+    return WordLookup(word=body.word, saved=row["id"] if row else None, **found.model_dump())
+
+
+class SavedWord(Explained):
+    id: int
+    headword: str
+    word: str
+    sentence: str
+    saved_at: str
+
+
+SAVED = "id, headword, word, sentence, lemma, phrase, part_of_speech, meaning, in_context, saved_at"
+
+
+@router.get("/words", response_model=list[SavedWord])
+def list_words() -> list[SavedWord]:
+    """The words the learner saved in the language being learned, the newest first."""
+    with get_connection() as conn:
+        rows = conn.execute(
+            f"SELECT {SAVED} FROM saved_words WHERE target = ? ORDER BY saved_at DESC, id DESC",
+            (current_language().code,),
+        ).fetchall()
+    return [SavedWord(**row) for row in rows]
+
+
+@router.post("/words", response_model=SavedWord, status_code=201)
+def save_word(body: LookupRequest) -> SavedWord:
+    """Saves a word with its sentence and what it means there; saved again from the same
+    sentence, it is kept once."""
+    found = explanation(body.word, body.sentence)
+    headword = found.phrase or found.lemma
+    with get_connection() as conn:
+        conn.execute(
+            """INSERT INTO saved_words
+                   (target, headword, word, sentence, lemma, phrase, part_of_speech, meaning, in_context)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+               ON CONFLICT (target, word, sentence) DO UPDATE SET
+                   headword = excluded.headword, lemma = excluded.lemma,
+                   phrase = excluded.phrase, part_of_speech = excluded.part_of_speech,
+                   meaning = excluded.meaning, in_context = excluded.in_context""",
+            (
+                current_language().code,
+                headword,
+                body.word,
+                body.sentence,
+                found.lemma,
+                found.phrase,
+                found.part_of_speech,
+                found.meaning,
+                found.in_context,
+            ),
+        )
+        row = conn.execute(
+            f"SELECT {SAVED} FROM saved_words WHERE target = ? AND word = ? AND sentence = ?",
+            (current_language().code, body.word, body.sentence),
+        ).fetchone()
+    return SavedWord(**row)
+
+
+@router.delete("/words/{word_id}", status_code=204)
+def remove_word(word_id: int) -> None:
+    """Takes a word off the learner's list."""
+    with get_connection() as conn:
+        removed = conn.execute(
+            "DELETE FROM saved_words WHERE id = ? AND target = ?", (word_id, current_language().code)
+        ).rowcount
+    if not removed:
+        raise HTTPException(status_code=404, detail="No such saved word.")

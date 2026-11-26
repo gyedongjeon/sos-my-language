@@ -473,4 +473,5 @@ def test_every_row_that_is_learned_says_which_language_it_is_in():
         "shadowing_mistakes",
         "shadowing_attempts",
         "word_lookups",
+        "saved_words",
     }
