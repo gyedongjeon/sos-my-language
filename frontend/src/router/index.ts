@@ -9,6 +9,7 @@ import PracticeView from '../views/PracticeView.vue'
 import SettingsView from '../views/SettingsView.vue'
 import VideosView from '../views/VideosView.vue'
 import VideoView from '../views/VideoView.vue'
+import WordsView from '../views/WordsView.vue'
 
 const idProp = (route: { params: Record<string, string | string[]> }) => ({ id: Number(route.params.id) })
 
@@ -17,6 +18,7 @@ export default createRouter({
   routes: [
     { path: '/', name: 'home', component: HomeView },
     { path: '/topics/:id(\\d+)', name: 'practice', component: PracticeView, props: idProp },
+    { path: '/words', name: 'words', component: WordsView },
     { path: '/history', name: 'history', component: HistoryView },
     { path: '/history/:id(\\d+)', name: 'conversation', component: ConversationView, props: idProp },
     { path: '/patterns', name: 'patterns', component: PatternsView },

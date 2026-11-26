@@ -34,6 +34,7 @@ const id: Record<keyof typeof en, string> = {
   'nav.patterns': 'Pola',
   'nav.videos': 'Video',
   'nav.corrections': 'Koreksi',
+  'nav.words': 'Kata',
   'nav.history': 'Riwayat',
   'nav.settings': 'Pengaturan',
   'nav.practise': 'Bahasa yang dilatih',
@@ -309,6 +310,12 @@ const id: Record<keyof typeof en, string> = {
   'lookup.word': 'Cari arti “{word}”',
   'lookup.looking': 'Sedang mencari…',
   'lookup.dialog': 'Arti kata',
+  'lookup.save': 'Simpan',
+  'lookup.saved': 'Tersimpan',
+
+  'words.intro': 'Kata-kata yang kamu simpan, masing-masing dengan kalimat tempat kamu menemukannya dan artinya di sana.',
+  'words.none': 'Belum ada kata yang disimpan. Ketuk kata dalam kalimat lalu tekan “Simpan” untuk menyimpannya di sini.',
+  'words.remove': 'Hapus “{word}”',
 }
 
 export default id

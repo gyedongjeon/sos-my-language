@@ -34,6 +34,7 @@ const th: Record<keyof typeof en, string> = {
   'nav.patterns': 'รูปประโยค',
   'nav.videos': 'วิดีโอ',
   'nav.corrections': 'ข้อแก้ไข',
+  'nav.words': 'คำศัพท์',
   'nav.history': 'ประวัติ',
   'nav.settings': 'การตั้งค่า',
   'nav.practise': 'ภาษาที่จะฝึก',
@@ -306,6 +307,12 @@ const th: Record<keyof typeof en, string> = {
   'lookup.word': 'ดูความหมายของ “{word}”',
   'lookup.looking': 'กำลังค้นหา…',
   'lookup.dialog': 'ความหมายของคำ',
+  'lookup.save': 'บันทึก',
+  'lookup.saved': 'บันทึกแล้ว',
+
+  'words.intro': 'คำที่คุณบันทึกไว้ แต่ละคำพร้อมประโยคที่คุณพบและความหมายในประโยคนั้น',
+  'words.none': 'ยังไม่มีคำที่บันทึกไว้ แตะคำในประโยคแล้วกด “บันทึก” เพื่อเก็บไว้ที่นี่',
+  'words.remove': 'ลบ “{word}”',
 }
 
 export default th

@@ -35,6 +35,7 @@ const hi: Record<keyof typeof en, string> = {
   'nav.patterns': 'पैटर्न',
   'nav.videos': 'वीडियो',
   'nav.corrections': 'सुधार',
+  'nav.words': 'शब्द',
   'nav.history': 'इतिहास',
   'nav.settings': 'सेटिंग्स',
   'nav.practise': 'अभ्यास की भाषा',
@@ -308,6 +309,12 @@ const hi: Record<keyof typeof en, string> = {
   'lookup.word': '“{word}” का अर्थ देखें',
   'lookup.looking': 'खोजा जा रहा है…',
   'lookup.dialog': 'शब्द का अर्थ',
+  'lookup.save': 'सहेजें',
+  'lookup.saved': 'सहेजा गया',
+
+  'words.intro': 'आपके सहेजे गए शब्द, हर एक उस वाक्य के साथ जिसमें आपको वह मिला और वहाँ उसका अर्थ।',
+  'words.none': 'अभी तक कोई शब्द सहेजा नहीं गया। किसी वाक्य में शब्द पर टैप करें और उसे यहाँ रखने के लिए “सहेजें” दबाएँ।',
+  'words.remove': '“{word}” हटाएँ',
 }
 
 export default hi

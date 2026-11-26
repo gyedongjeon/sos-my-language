@@ -88,6 +88,19 @@ watch(() => route.fullPath, close)
         <p v-if="lookup.found.part_of_speech" class="text-base-content/60">{{ lookup.found.part_of_speech }}</p>
         <p class="font-medium">{{ lookup.found.meaning }}</p>
         <p v-if="lookup.found.in_context" class="text-base-content/70">{{ lookup.found.in_context }}</p>
+        <div class="card-actions mt-1">
+          <!-- Pressed again, a saved word is taken off the list. -->
+          <button
+            class="btn btn-xs"
+            :class="lookup.found.saved === null ? 'btn-primary' : 'btn-soft btn-primary'"
+            :aria-pressed="lookup.found.saved !== null"
+            :disabled="lookup.saving"
+            @click="lookup.toggleSaved()"
+          >
+            {{ lookup.found.saved === null ? t('lookup.save') : `✓ ${t('lookup.saved')}` }}
+          </button>
+        </div>
+        <p v-if="lookup.saveError" role="alert" class="text-error">{{ lookup.saveError }}</p>
       </template>
     </div>
   </div>

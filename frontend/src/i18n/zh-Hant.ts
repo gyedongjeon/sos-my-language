@@ -33,6 +33,7 @@ const zhHant: Record<keyof typeof en, string> = {
   'nav.patterns': '句型',
   'nav.videos': '影片',
   'nav.corrections': '訂正',
+  'nav.words': '生詞本',
   'nav.history': '紀錄',
   'nav.settings': '設定',
   'nav.practise': '練習的語言',
@@ -300,6 +301,12 @@ const zhHant: Record<keyof typeof en, string> = {
   'lookup.word': '查看「{word}」的意思',
   'lookup.looking': '正在查詢…',
   'lookup.dialog': '詞義',
+  'lookup.save': '儲存',
+  'lookup.saved': '已儲存',
+
+  'words.intro': '你儲存的單字，每個都附有你發現它的句子以及它在句中的意思。',
+  'words.none': '還沒有儲存的單字。點按句子中的單字，再按「儲存」即可收藏到這裡。',
+  'words.remove': '刪除「{word}」',
 }
 
 export default zhHant

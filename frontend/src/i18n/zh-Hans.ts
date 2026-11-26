@@ -33,6 +33,7 @@ const zhHans: Record<keyof typeof en, string> = {
   'nav.patterns': '句型',
   'nav.videos': '视频',
   'nav.corrections': '纠错',
+  'nav.words': '生词本',
   'nav.history': '历史记录',
   'nav.settings': '设置',
   'nav.practise': '练习的语言',
@@ -298,6 +299,12 @@ const zhHans: Record<keyof typeof en, string> = {
   'lookup.word': '查看“{word}”的意思',
   'lookup.looking': '正在查询…',
   'lookup.dialog': '词义',
+  'lookup.save': '保存',
+  'lookup.saved': '已保存',
+
+  'words.intro': '你保存的单词，每个都附有你发现它的句子以及它在句中的意思。',
+  'words.none': '还没有保存的单词。点按句子中的单词，再按“保存”即可收藏到这里。',
+  'words.remove': '删除“{word}”',
 }
 
 export default zhHans

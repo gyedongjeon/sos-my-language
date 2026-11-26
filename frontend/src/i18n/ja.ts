@@ -33,6 +33,7 @@ const ja: Record<keyof typeof en, string> = {
   'nav.patterns': 'パターン',
   'nav.videos': '動画',
   'nav.corrections': '添削',
+  'nav.words': '単語帳',
   'nav.history': '履歴',
   'nav.settings': '設定',
   'nav.practise': '練習する言語',
@@ -307,6 +308,12 @@ const ja: Record<keyof typeof en, string> = {
   'lookup.word': '「{word}」の意味を見る',
   'lookup.looking': '調べています…',
   'lookup.dialog': '単語の意味',
+  'lookup.save': '保存',
+  'lookup.saved': '保存済み',
+
+  'words.intro': '保存した単語を、見つけた文とその文での意味と一緒にまとめています。',
+  'words.none': '保存した単語はまだありません。文の中の単語をタップして「保存」を押すと、ここにたまります。',
+  'words.remove': '「{word}」を削除',
 }
 
 export default ja

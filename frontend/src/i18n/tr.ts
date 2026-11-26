@@ -34,6 +34,7 @@ const tr: Record<keyof typeof en, string> = {
   'nav.patterns': 'Kalıplar',
   'nav.videos': 'Videolar',
   'nav.corrections': 'Düzeltmeler',
+  'nav.words': 'Kelimeler',
   'nav.history': 'Geçmiş',
   'nav.settings': 'Ayarlar',
   'nav.practise': 'Pratik yapılacak dil',
@@ -309,6 +310,12 @@ const tr: Record<keyof typeof en, string> = {
   'lookup.word': '“{word}” kelimesine bak',
   'lookup.looking': 'Aranıyor…',
   'lookup.dialog': 'Kelimenin anlamı',
+  'lookup.save': 'Kaydet',
+  'lookup.saved': 'Kaydedildi',
+
+  'words.intro': 'Kaydettiğin kelimeler; her biri bulduğun cümle ve orada taşıdığı anlamla birlikte.',
+  'words.none': 'Henüz kaydedilmiş kelime yok. Bir cümlede bir kelimeye dokun ve burada tutmak için “Kaydet”e bas.',
+  'words.remove': '“{word}” kaldır',
 }
 
 export default tr

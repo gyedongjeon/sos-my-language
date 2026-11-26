@@ -272,4 +272,21 @@ export interface WordLookup {
   part_of_speech: string
   meaning: string
   in_context: string
+  // The id it is saved as in the learner's list of words, or null.
+  saved: number | null
+}
+
+// A word in the learner's list, with the sentence it was saved from and what it means there.
+export interface SavedWord {
+  id: number
+  // The phrase it belongs to, or else its dictionary form.
+  headword: string
+  word: string
+  sentence: string
+  lemma: string
+  phrase: string
+  part_of_speech: string
+  meaning: string
+  in_context: string
+  saved_at: string
 }

@@ -10,6 +10,7 @@ const CORTEX: WordLookup = {
   part_of_speech: '명사',
   meaning: '피질',
   in_context: '뇌의 바깥층',
+  saved: null,
 }
 const SENTENCE = 'It involves all four lobes of the cortex.'
 const AT = { left: 10, top: 20, bottom: 40 }
@@ -72,5 +73,50 @@ describe('lookup', () => {
     expect(store.tapped).toBeNull()
     expect(store.found).toBeNull()
     expect(store.loading).toBe(false)
+  })
+
+  it('saves the word shown to the list of words, with its sentence', async () => {
+    const fetch = vi
+      .fn()
+      .mockResolvedValueOnce(new Response(JSON.stringify(CORTEX)))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ id: 7, headword: 'cortex' }), { status: 201 }))
+    vi.stubGlobal('fetch', fetch)
+    const store = useLookupStore()
+    await store.lookUp('cortex', SENTENCE, AT)
+    await store.toggleSaved()
+    expect(fetch).toHaveBeenLastCalledWith('/api/words', expect.objectContaining({ method: 'POST' }))
+    expect(JSON.parse((fetch.mock.calls[1] as unknown as [string, RequestInit])[1].body as string)).toEqual({
+      word: 'cortex',
+      sentence: SENTENCE,
+    })
+    expect(store.found?.saved).toBe(7)
+  })
+
+  it('takes a saved word off the list', async () => {
+    const fetch = vi
+      .fn()
+      .mockResolvedValueOnce(new Response(JSON.stringify({ ...CORTEX, saved: 7 })))
+      .mockResolvedValueOnce(new Response(null, { status: 204 }))
+    vi.stubGlobal('fetch', fetch)
+    const store = useLookupStore()
+    await store.lookUp('cortex', SENTENCE, AT)
+    await store.toggleSaved()
+    expect(fetch).toHaveBeenLastCalledWith('/api/words/7', expect.objectContaining({ method: 'DELETE' }))
+    expect(store.found?.saved).toBeNull()
+  })
+
+  it('shows why a word could not be saved', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi
+        .fn()
+        .mockResolvedValueOnce(new Response(JSON.stringify(CORTEX)))
+        .mockResolvedValueOnce(new Response(JSON.stringify({ detail: 'Could not look up the word.' }), { status: 502 })),
+    )
+    const store = useLookupStore()
+    await store.lookUp('cortex', SENTENCE, AT)
+    await store.toggleSaved()
+    expect(store.saveError).toBe('Could not look up the word.')
+    expect(store.found?.saved).toBeNull()
   })
 })
