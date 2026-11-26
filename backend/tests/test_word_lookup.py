@@ -9,6 +9,7 @@ from app.llm import LLMError
 
 CORTEX = {
     "lemma": "cortex",
+    "forms": "pl. cortices",
     "pronunciation": "ˈkɔːteks",
     "phrase": "",
     "part_of_speech": "명사",
@@ -64,7 +65,7 @@ def test_the_words_in_the_translation_are_given_without_spaces_around_them(clien
     assert look_up(client).json()["in_translation"] == "대뇌 피질"
 
 
-@pytest.mark.parametrize("field", ["translation", "pronunciation"])
+@pytest.mark.parametrize("field", ["translation", "pronunciation", "forms"])
 def test_an_explanation_kept_before_it_had_a_field_is_asked_for_again(client, model, field):
     from app.db import get_connection
 

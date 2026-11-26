@@ -12,6 +12,7 @@ def test_a_saved_word_is_listed_with_its_meaning_and_sentence(client, model):
     assert response.status_code == 201, response.text
     saved = response.json()
     assert saved["headword"] == "cortex"
+    assert saved["forms"] == CORTEX["forms"]
     assert saved["meaning"] == CORTEX["meaning"]
     assert saved["pronunciation"] == CORTEX["pronunciation"]
     assert saved["sentence"] == SENTENCE

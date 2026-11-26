@@ -29,6 +29,8 @@ class LookupRequest(BaseModel):
 
 class Explained(BaseModel):
     lemma: str = Field(min_length=1)
+    # Its plural or irregular forms, written short ("pl. cortices"), or "".
+    forms: str = ""
     # How the headword is said, in the International Phonetic Alphabet, without marks around it.
     pronunciation: str = ""
     phrase: str
@@ -51,12 +53,19 @@ A learner of {target} reads a sentence in {target} and taps a word they do not k
 word to them in {language}, their own language, as a good learner's dictionary would, for the
 meaning it has in that sentence.
 
-- lemma: the word's dictionary form in {target}, as a dictionary lists it, with what a learner
-  needs to use it that the language has: for a noun its article and plural, for a verb with
-  irregular forms those forms. Just the form, nothing else, when there is nothing to add.
-- pronunciation: how the phrase (when there is one) or else the dictionary form is said, in the
-  International Phonetic Alphabet as a learner's dictionary of {target} gives it, with its stress
-  marks; just the symbols, without slashes or brackets around them.
+- lemma: the word's dictionary form in {target}, alone, as a dictionary's headword, and never
+  the form it has in the sentence when that is another. When the nouns of {target} have a
+  gender that an article shows, a noun is given with its article, here and nowhere else. No
+  plural, other forms, or notes here; they go in forms.
+- forms: what a learner needs to use the phrase (when there is one) or else the dictionary form
+  that {target} has, written short in {target} as its dictionaries write it: for a noun its
+  plural, for a verb with irregular forms those forms. Just the forms, separated by commas,
+  without labels such as "plural" and without the article. An empty string when there is
+  nothing to add.
+- pronunciation: how the phrase (when there is one) or else lemma is said, exactly as written
+  there (not the form in the sentence) and without its article, in the International Phonetic
+  Alphabet as a learner's dictionary of {target} gives it, with its stress marks; just the
+  symbols, without slashes or brackets around them.
 - phrase: when the word means what it does here only together with other words of the sentence
   (a verb whose parts are apart, a phrasal verb, an idiom), that phrase in its dictionary form
   in {target}; otherwise an empty string. When there is one, explain the phrase, not the word.
@@ -112,9 +121,9 @@ def explanation(word: str, sentence: str) -> Explained:
             key,
         ).fetchone()
     kept = Explained.model_validate_json(row["explained"]) if row else None
-    # One kept before the sentence was translated, or before it had a pronunciation, is asked
-    # for again.
-    if kept and {"translation", "pronunciation"} <= kept.model_fields_set:
+    # One kept before the sentence was translated, or before it had a pronunciation or its forms
+    # apart from its dictionary form, is asked for again.
+    if kept and {"translation", "pronunciation", "forms"} <= kept.model_fields_set:
         return kept
     try:
         found = _explain(word, sentence, key[1])
@@ -149,8 +158,8 @@ class SavedWord(Explained):
 
 
 SAVED = (
-    "id, headword, word, sentence, lemma, pronunciation, phrase, part_of_speech, meaning, translation, in_translation,"
-    " saved_at"
+    "id, headword, word, sentence, lemma, forms, pronunciation, phrase, part_of_speech, meaning,"
+    " translation, in_translation, saved_at"
 )
 
 
@@ -174,11 +183,12 @@ def save_word(body: LookupRequest) -> SavedWord:
     with get_connection() as conn:
         conn.execute(
             """INSERT INTO saved_words
-                   (target, headword, word, sentence, lemma, pronunciation, phrase, part_of_speech, meaning, translation,
+                   (target, headword, word, sentence, lemma, forms, pronunciation, phrase, part_of_speech, meaning, translation,
                     in_translation)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                ON CONFLICT (target, word, sentence) DO UPDATE SET
-                   headword = excluded.headword, lemma = excluded.lemma, pronunciation = excluded.pronunciation,
+                   headword = excluded.headword, lemma = excluded.lemma, forms = excluded.forms,
+                   pronunciation = excluded.pronunciation,
                    phrase = excluded.phrase, part_of_speech = excluded.part_of_speech,
                    meaning = excluded.meaning, translation = excluded.translation,
                    in_translation = excluded.in_translation""",
@@ -188,6 +198,7 @@ def save_word(body: LookupRequest) -> SavedWord:
                 body.word,
                 body.sentence,
                 found.lemma,
+                found.forms,
                 found.pronunciation,
                 found.phrase,
                 found.part_of_speech,
