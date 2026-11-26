@@ -82,7 +82,7 @@ asked for:
 
 ## Verification
 
-- `cd backend && uv run pytest`: 332 passed. In `tests/test_word_lookup.py`, new tests cover:
+- `cd backend && uv run pytest`: 334 passed. In `tests/test_word_lookup.py`, new tests cover:
   - an explanation kept without a translation is asked for again;
   - words said to be in the translation that are not there are left out;
   - those words are given without the spaces around them;
