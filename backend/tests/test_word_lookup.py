@@ -12,7 +12,8 @@ CORTEX = {
     "phrase": "",
     "part_of_speech": "명사",
     "meaning": "피질, 대뇌 피질",
-    "in_context": "여기서는 뇌의 바깥층을 말합니다.",
+    "translation": "그것은 활성화와 대뇌 피질의 네 엽 모두와 관련됩니다.",
+    "in_translation": "대뇌 피질",
 }
 SENTENCE = "It involves activation and all four lobes of the cortex."
 
@@ -50,6 +51,30 @@ def test_a_lookup_is_kept_and_not_asked_for_again(client, model):
     first = look_up(client).json()
     assert look_up(client).json() == first
     assert len(model.calls) == 1
+
+
+def test_an_explanation_kept_without_a_translation_of_its_sentence_is_asked_for_again(client, model):
+    from app.db import get_connection
+
+    old = {key: value for key, value in CORTEX.items() if key != "translation"} | {"in_context": "여기서는 …"}
+    client.put("/api/settings", json={"feedback_language": "Korean"})
+    with get_connection() as conn:
+        conn.execute(
+            "INSERT INTO word_lookups (target, language, word, sentence, explained) VALUES ('en', 'Korean', 'cortex', ?, ?)",
+            (SENTENCE, json.dumps(old)),
+        )
+    assert look_up(client).json()["translation"] == CORTEX["translation"]
+    assert len(model.calls) == 1
+
+
+def test_words_said_to_be_in_the_translation_that_are_not_there_are_left_out(client, model):
+    model.reply = {**CORTEX, "in_translation": "피질층"}
+    assert look_up(client).json()["in_translation"] == ""
+
+
+def test_the_words_in_the_translation_are_given_without_spaces_around_them(client, model):
+    model.reply = {**CORTEX, "in_translation": " 대뇌 피질 "}
+    assert look_up(client).json()["in_translation"] == "대뇌 피질"
 
 
 def test_a_word_is_asked_for_again_in_another_feedback_language(client, model):

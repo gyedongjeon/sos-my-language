@@ -416,7 +416,8 @@ CREATE TABLE IF NOT EXISTS word_lookups (
 );
 
 -- A word the learner saved to their list, with the sentence they found it in and what it means
--- there, in the language it was explained in. `headword` is the phrase it belongs to, or else its
+-- there, in the language it was explained in, with the sentence translated into it and the
+-- words of that translation that stand for the word. `headword` is the phrase it belongs to, or else its
 -- dictionary form, as shown. One row for each word in each sentence, as for `word_lookups`: the
 -- same word in another sentence may mean something else.
 CREATE TABLE IF NOT EXISTS saved_words (
@@ -429,7 +430,8 @@ CREATE TABLE IF NOT EXISTS saved_words (
     phrase TEXT NOT NULL,
     part_of_speech TEXT NOT NULL,
     meaning TEXT NOT NULL,
-    in_context TEXT NOT NULL,
+    translation TEXT NOT NULL,
+    in_translation TEXT NOT NULL,
     saved_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
     UNIQUE (target, word, sentence)
 );

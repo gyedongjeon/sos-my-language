@@ -32,7 +32,10 @@ class Explained(BaseModel):
     phrase: str
     part_of_speech: str
     meaning: str = Field(min_length=1)
-    in_context: str
+    # The whole sentence in the learner's language ("" when that is the language being learned),
+    # and the words of it that stand for the tapped word, as they are written there.
+    translation: str = ""
+    in_translation: str = ""
 
 
 class WordLookup(Explained):
@@ -55,9 +58,12 @@ meaning it has in that sentence.
 - part_of_speech: in {language}, one or two words.
 - meaning: in {language}, short like a dictionary entry: the meaning it has here first, then at
   most two other common ones, separated by commas.
-- in_context: one short sentence in {language} on what it means in this sentence.
+- translation: the whole sentence translated into natural {language}, keeping its meaning and
+  tone; an empty string when {language} is {target}.
+- in_translation: the words of your translation that stand for the word (or its phrase), copied
+  exactly as they are written in it; an empty string when there are none or no translation.
 
-Write part_of_speech, meaning, and in_context in {language}. {only_quoted}
+Write part_of_speech, meaning, and translation in {language}. {only_quoted}
 
 Reply with a single JSON object matching this schema, and nothing else:
 {schema}"""
@@ -79,7 +85,12 @@ def _explain(word: str, sentence: str, language: str) -> Explained:
     )
     found = parse_json_reply(reply, Explained)
     found.meaning = in_own_language(found.meaning, language)
-    found.in_context = in_own_language(found.in_context, language)
+    if found.translation:
+        found.translation = in_own_language(found.translation, language)
+    # Only words that are there can be shown in it.
+    found.in_translation = found.in_translation.strip()
+    if found.in_translation not in found.translation:
+        found.in_translation = ""
     return found
 
 
@@ -92,8 +103,10 @@ def explanation(word: str, sentence: str) -> Explained:
             "SELECT explained FROM word_lookups WHERE target = ? AND language = ? AND word = ? AND sentence = ?",
             key,
         ).fetchone()
-    if row:
-        return Explained.model_validate_json(row["explained"])
+    kept = Explained.model_validate_json(row["explained"]) if row else None
+    # One kept before the sentence was translated is asked for again.
+    if kept and "translation" in kept.model_fields_set:
+        return kept
     try:
         found = _explain(word, sentence, key[1])
     except LLMError as e:
@@ -126,7 +139,7 @@ class SavedWord(Explained):
     saved_at: str
 
 
-SAVED = "id, headword, word, sentence, lemma, phrase, part_of_speech, meaning, in_context, saved_at"
+SAVED = "id, headword, word, sentence, lemma, phrase, part_of_speech, meaning, translation, in_translation, saved_at"
 
 
 @router.get("/words", response_model=list[SavedWord])
@@ -149,12 +162,13 @@ def save_word(body: LookupRequest) -> SavedWord:
     with get_connection() as conn:
         conn.execute(
             """INSERT INTO saved_words
-                   (target, headword, word, sentence, lemma, phrase, part_of_speech, meaning, in_context)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                   (target, headword, word, sentence, lemma, phrase, part_of_speech, meaning, translation, in_translation)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                ON CONFLICT (target, word, sentence) DO UPDATE SET
                    headword = excluded.headword, lemma = excluded.lemma,
                    phrase = excluded.phrase, part_of_speech = excluded.part_of_speech,
-                   meaning = excluded.meaning, in_context = excluded.in_context""",
+                   meaning = excluded.meaning, translation = excluded.translation,
+                   in_translation = excluded.in_translation""",
             (
                 current_language().code,
                 headword,
@@ -164,7 +178,8 @@ def save_word(body: LookupRequest) -> SavedWord:
                 found.phrase,
                 found.part_of_speech,
                 found.meaning,
-                found.in_context,
+                found.translation,
+                found.in_translation,
             ),
         )
         row = conn.execute(
