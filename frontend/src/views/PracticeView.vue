@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import LookupText from '../components/LookupText.vue'
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { api } from '../api'
 import CorrectionCard from '../components/CorrectionCard.vue'
@@ -142,7 +143,7 @@ onBeforeUnmount(() => {
               <template v-if="i === latestTutor && !showLatest">
                 <span class="italic opacity-70">{{ speech.speaking.value ? t('practice.speaking') : t('practice.listenFirst') }}</span>
               </template>
-              <template v-else>{{ message.text }}</template>
+              <LookupText v-else-if="message.role === 'tutor'" :text="message.text" /><template v-else>{{ message.text }}</template>
             </div>
             <div v-if="i === latestTutor" class="chat-footer mt-1 flex gap-1">
               <button class="btn btn-xs" @click="speech.speak(message.text)">{{ t('practice.replay') }}</button>

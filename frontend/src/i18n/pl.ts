@@ -307,6 +307,10 @@ const pl: Record<keyof typeof en, string> = {
   'settings.voiceFailed': 'Nie udało się zmienić głosu: {error}',
   'settings.themeFailed': 'Nie udało się zapisać wyglądu: {error}',
   'settings.yourLanguageFailed': 'Nie udało się zapisać języka: {error}',
+
+  'lookup.word': 'Sprawdź „{word}”',
+  'lookup.looking': 'Sprawdzanie…',
+  'lookup.dialog': 'Znaczenie słowa',
 }
 
 export default pl

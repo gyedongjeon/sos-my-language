@@ -300,4 +300,8 @@ export default {
   'settings.voiceFailed': 'Could not change the voice: {error}',
   'settings.themeFailed': 'Could not save the appearance: {error}',
   'settings.yourLanguageFailed': 'Could not save the language: {error}',
+
+  'lookup.word': 'Look up “{word}”',
+  'lookup.looking': 'Looking it up…',
+  'lookup.dialog': 'Meaning of a word',
 }

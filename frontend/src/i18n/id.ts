@@ -305,6 +305,10 @@ const id: Record<keyof typeof en, string> = {
   'settings.voiceFailed': 'Gagal mengganti suara: {error}',
   'settings.themeFailed': 'Tidak dapat menyimpan tampilan: {error}',
   'settings.yourLanguageFailed': 'Gagal menyimpan bahasa: {error}',
+
+  'lookup.word': 'Cari arti “{word}”',
+  'lookup.looking': 'Sedang mencari…',
+  'lookup.dialog': 'Arti kata',
 }
 
 export default id

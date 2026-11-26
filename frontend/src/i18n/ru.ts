@@ -304,6 +304,10 @@ const ru: Record<keyof typeof en, string> = {
   'settings.voiceFailed': 'Не удалось сменить голос: {error}',
   'settings.themeFailed': 'Не удалось сохранить оформление: {error}',
   'settings.yourLanguageFailed': 'Не удалось сохранить язык: {error}',
+
+  'lookup.word': 'Значение «{word}»',
+  'lookup.looking': 'Ищем…',
+  'lookup.dialog': 'Значение слова',
 }
 
 export default ru

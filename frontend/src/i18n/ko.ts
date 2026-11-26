@@ -294,6 +294,10 @@ const ko: Record<keyof typeof en, string> = {
   'settings.voiceFailed': '목소리를 바꾸지 못했습니다: {error}',
   'settings.themeFailed': '화면 테마를 저장하지 못했습니다: {error}',
   'settings.yourLanguageFailed': '언어를 저장하지 못했습니다: {error}',
+
+  'lookup.word': '“{word}” 뜻 보기',
+  'lookup.looking': '찾는 중…',
+  'lookup.dialog': '단어 뜻',
 }
 
 export default ko

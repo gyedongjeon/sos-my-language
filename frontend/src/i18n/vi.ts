@@ -302,6 +302,10 @@ const vi: Record<keyof typeof en, string> = {
   'settings.voiceFailed': 'Không đổi được giọng nói: {error}',
   'settings.themeFailed': 'Không thể lưu giao diện: {error}',
   'settings.yourLanguageFailed': 'Không lưu được ngôn ngữ: {error}',
+
+  'lookup.word': 'Tra “{word}”',
+  'lookup.looking': 'Đang tra…',
+  'lookup.dialog': 'Nghĩa của từ',
 }
 
 export default vi

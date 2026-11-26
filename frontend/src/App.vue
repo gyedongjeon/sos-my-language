@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router'
 import BrandMark from './components/BrandMark.vue'
 import LanguagePicker from './components/LanguagePicker.vue'
 import ModelDownloads from './components/ModelDownloads.vue'
+import WordPopover from './components/WordPopover.vue'
 import { t } from './i18n'
 import { useModelsStore } from './stores/models'
 import { useSettingsStore } from './stores/settings'
@@ -89,6 +90,7 @@ onMounted(async () => {
         <RouterLink class="btn btn-sm btn-warning" to="/settings">{{ t('app.openSettings') }}</RouterLink>
       </div>
       <RouterView :key="restarted" />
+      <WordPopover />
     </template>
     <div v-else-if="settings.error" role="alert" class="alert alert-error alert-soft mx-auto mt-4 max-w-3xl">
       {{ settings.error }}

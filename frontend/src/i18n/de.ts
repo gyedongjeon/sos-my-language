@@ -312,6 +312,10 @@ const de: Record<keyof typeof en, string> = {
   'settings.voiceFailed': 'Die Stimme konnte nicht gewechselt werden: {error}',
   'settings.themeFailed': 'Das Erscheinungsbild konnte nicht gespeichert werden: {error}',
   'settings.yourLanguageFailed': 'Die Sprache konnte nicht gespeichert werden: {error}',
+
+  'lookup.word': '„{word}“ nachschlagen',
+  'lookup.looking': 'Wird nachgeschlagen…',
+  'lookup.dialog': 'Bedeutung eines Wortes',
 }
 
 export default de

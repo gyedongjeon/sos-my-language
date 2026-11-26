@@ -302,6 +302,10 @@ const th: Record<keyof typeof en, string> = {
   'settings.voiceFailed': 'เปลี่ยนเสียงไม่ได้: {error}',
   'settings.themeFailed': 'บันทึกธีมไม่ได้: {error}',
   'settings.yourLanguageFailed': 'บันทึกภาษาไม่ได้: {error}',
+
+  'lookup.word': 'ดูความหมายของ “{word}”',
+  'lookup.looking': 'กำลังค้นหา…',
+  'lookup.dialog': 'ความหมายของคำ',
 }
 
 export default th
