@@ -54,20 +54,6 @@ def test_a_lookup_is_kept_and_not_asked_for_again(client, model):
     assert len(model.calls) == 1
 
 
-def test_an_explanation_kept_without_a_translation_of_its_sentence_is_asked_for_again(client, model):
-    from app.db import get_connection
-
-    old = {key: value for key, value in CORTEX.items() if key != "translation"} | {"in_context": "여기서는 …"}
-    client.put("/api/settings", json={"feedback_language": "Korean"})
-    with get_connection() as conn:
-        conn.execute(
-            "INSERT INTO word_lookups (target, language, word, sentence, explained) VALUES ('en', 'Korean', 'cortex', ?, ?)",
-            (SENTENCE, json.dumps(old)),
-        )
-    assert look_up(client).json()["translation"] == CORTEX["translation"]
-    assert len(model.calls) == 1
-
-
 def test_words_said_to_be_in_the_translation_that_are_not_there_are_left_out(client, model):
     model.reply = {**CORTEX, "in_translation": "피질층"}
     assert look_up(client).json()["in_translation"] == ""
@@ -78,17 +64,18 @@ def test_the_words_in_the_translation_are_given_without_spaces_around_them(clien
     assert look_up(client).json()["in_translation"] == "대뇌 피질"
 
 
-def test_an_explanation_kept_without_a_pronunciation_is_asked_for_again(client, model):
+@pytest.mark.parametrize("field", ["translation", "pronunciation"])
+def test_an_explanation_kept_before_it_had_a_field_is_asked_for_again(client, model, field):
     from app.db import get_connection
 
-    old = {key: value for key, value in CORTEX.items() if key != "pronunciation"}
+    old = {key: value for key, value in CORTEX.items() if key != field}
     client.put("/api/settings", json={"feedback_language": "Korean"})
     with get_connection() as conn:
         conn.execute(
             "INSERT INTO word_lookups (target, language, word, sentence, explained) VALUES ('en', 'Korean', 'cortex', ?, ?)",
             (SENTENCE, json.dumps(old)),
         )
-    assert look_up(client).json()["pronunciation"] == CORTEX["pronunciation"]
+    assert look_up(client).json()[field] == CORTEX[field]
     assert len(model.calls) == 1
 
 
