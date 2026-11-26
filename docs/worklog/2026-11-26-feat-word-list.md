@@ -17,6 +17,8 @@ asked for:
 - Color the same kind of words in the translation each time. One was colored with its particle
   ("피질의") and another without ("엽").
 - Show the IPA of a word for English, and for German too, since German dictionaries give it.
+- Make the headword clean. It came back with its forms in it, written differently each time
+  ("cortex (plural cortices)", "cortex (pl. cortices)"), and the IPA was once of the plural.
 
 ## Changes
 
@@ -42,8 +44,14 @@ asked for:
   - `in_translation` is trimmed, and left empty when it is not in the translation.
   - An explanation kept before this change has no translation, so it is asked for again.
   - When the learner's language is the language being learned, the translation is empty.
+- **Dictionary form apart from its forms**: `lemma` is now the dictionary form alone, as a
+  dictionary's headword, with the article only where the language's nouns have one ("der
+  Hund"). The plural or irregular forms go in a new `forms` field, written short and separated
+  by commas, without labels or the article. An explanation kept without `forms` is asked for
+  again. Shown next to the headword on the popover and the Words page.
 - **IPA**: the model gives how the phrase, or else the dictionary form, is said
-  (`pronunciation`), in IPA as a learner's dictionary of the language gives it. It is asked for
+  (`pronunciation`), in IPA as a learner's dictionary of the language gives it. It is the IPA of
+  that form as written, not of the form in the sentence, and without the article. It is asked for
   every language, since English and German dictionaries both give it. Slashes or brackets
   around it are taken off, and the page shows it between slashes. An explanation kept without a
   pronunciation is asked for again.
@@ -57,7 +65,8 @@ asked for:
   sentence may mean something else anyway. Saved again from the same sentence, a word is kept
   once.
 - **Frontend**:
-  - The word popover and the Words page show the IPA under or next to the headword.
+  - The word popover and the Words page show the IPA and the forms under or next to the
+    headword.
   - The word popover shows the translation, with the words that stand for the tapped word in
     the accent color, in place of the note.
   - The word popover has a "Save" button. Once the word is saved it shows "✓ Saved", and
@@ -66,11 +75,12 @@ asked for:
   - A new **Words** page (`/words`, in the navigation bar after Corrections) lists each saved
     word with its headword, part of speech, meaning, sentence, and the translation, with "Hear
     it" and "Delete" buttons. The tapped word in the sentence and its words in the translation
-    are in the accent color. "Hear it" reads the phrase or the word as tapped, not the
-    dictionary form with its added forms.
+    are in the accent color. "Hear it" reads the headword.
   - `markPart` (`src/words.ts`) finds what to color. The tapped word is matched as a whole word
     in any case, so "a" is not found inside "and". The words of a translation are matched as
     they are written. `MarkedText.vue` shows the text with that part colored.
+- **Tests tidied first**: the tests for an explanation kept before it had a field were merged
+  into one parametrized test, before `forms` was added to it (a `refactor:` commit).
 - **Page texts**: six new keys (`nav.words`, `lookup.save`, `lookup.saved`, `words.intro`,
   `words.none`, `words.remove`) in every page language.
 - **READMEs**: a feature line on tapping and saving words in `README.md` and `README.ko.md`;
@@ -82,11 +92,11 @@ asked for:
 
 ## Verification
 
-- `cd backend && uv run pytest`: 334 passed. In `tests/test_word_lookup.py`, new tests cover:
-  - an explanation kept without a translation is asked for again;
+- `cd backend && uv run pytest`: 335 passed. In `tests/test_word_lookup.py`, new tests cover:
+  - an explanation kept without a translation, a pronunciation, or its forms is asked for
+    again;
   - words said to be in the translation that are not there are left out;
   - those words are given without the spaces around them;
-  - an explanation kept without a pronunciation is asked for again;
   - a pronunciation is given without the slashes or brackets around it.
 - `uv run --env-file .env pytest -m live -k "tapped_word or two_parts"`: 2 passed. The Korean
   translation is checked, and so is that its words for "cortex" are found in it. On real
@@ -98,7 +108,16 @@ asked for:
   - Verbs were marked as "끊어야" and "시작합니다" in one run, and only as their stems ("끊",
     "시작") in another. Both are inside the translation, so both are colored.
 - Real IPA: "cortex" ˈkɔːrteks, "give up" ɡɪv ʌp, German "anfangen" ˈanˌfaŋən, "Hund" hʊnt,
-  "Mädchen" ˈmɛːtçən. The live test now checks that a pronunciation is given.
+  "Mädchen" ˈmɛːtçən. The live test now checks that a pronunciation is given, and that the
+  dictionary form has no forms or notes in brackets in it.
+- With the forms apart, nine English and German words were each looked up twice:
+  - The headwords came back clean: "cortex", "lobe", "give up", "go", "child", "anfangen",
+    "der Hund", "das Mädchen", "gehen".
+  - Before the prompt was tightened, the IPA of "Hunde" and of "children" was once that of the
+    plural, and the article of "Mädchen" once went into its forms. After it, both runs agreed.
+  - The forms still differ a little between runs ("ging, gegangen" or "geht, ging, ist
+    gegangen").
+  - In the running app, "lobe" was still once given the IPA of its plural (loʊbz).
 - New `tests/test_word_list.py` covers:
   - a saved word is listed with its meaning and sentence;
   - a word saved again from its sentence is kept once;
