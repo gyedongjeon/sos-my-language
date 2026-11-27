@@ -34,6 +34,7 @@ const fr: Record<keyof typeof en, string> = {
   'nav.patterns': 'Structures',
   'nav.videos': 'Vidéos',
   'nav.corrections': 'Corrections',
+  'nav.words': 'Mots',
   'nav.history': 'Historique',
   'nav.settings': 'Paramètres',
   'nav.practise': 'Langue à pratiquer',
@@ -308,6 +309,12 @@ const fr: Record<keyof typeof en, string> = {
   'lookup.word': 'Chercher « {word} »',
   'lookup.looking': 'Recherche…',
   'lookup.dialog': 'Sens d’un mot',
+  'lookup.save': 'Enregistrer',
+  'lookup.saved': 'Enregistré',
+
+  'words.intro': 'Les mots que vous avez enregistrés, chacun avec la phrase où vous l’avez trouvé et son sens dans cette phrase.',
+  'words.none': 'Aucun mot enregistré pour l’instant. Touchez un mot dans une phrase et appuyez sur « Enregistrer » pour le garder ici.',
+  'words.remove': 'Retirer « {word} »',
 }
 
 export default fr

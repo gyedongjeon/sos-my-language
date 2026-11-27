@@ -31,6 +31,7 @@ export default {
   'nav.patterns': 'Patterns',
   'nav.videos': 'Videos',
   'nav.corrections': 'Corrections',
+  'nav.words': 'Words',
   'nav.history': 'History',
   'nav.settings': 'Settings',
   'nav.practise': 'Language to practise',
@@ -304,4 +305,10 @@ export default {
   'lookup.word': 'Look up “{word}”',
   'lookup.looking': 'Looking it up…',
   'lookup.dialog': 'Meaning of a word',
+  'lookup.save': 'Save',
+  'lookup.saved': 'Saved',
+
+  'words.intro': 'The words you saved, each with the sentence you found it in and what it means there.',
+  'words.none': 'No words saved yet. Tap a word in a sentence and press “Save” to keep it here.',
+  'words.remove': 'Remove “{word}”',
 }

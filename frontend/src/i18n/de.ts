@@ -33,6 +33,7 @@ const de: Record<keyof typeof en, string> = {
   'nav.patterns': 'Muster',
   'nav.videos': 'Videos',
   'nav.corrections': 'Korrekturen',
+  'nav.words': 'Wörter',
   'nav.history': 'Verlauf',
   'nav.settings': 'Einstellungen',
   'nav.practise': 'Sprache, die du übst',
@@ -316,6 +317,12 @@ const de: Record<keyof typeof en, string> = {
   'lookup.word': '„{word}“ nachschlagen',
   'lookup.looking': 'Wird nachgeschlagen…',
   'lookup.dialog': 'Bedeutung eines Wortes',
+  'lookup.save': 'Speichern',
+  'lookup.saved': 'Gespeichert',
+
+  'words.intro': 'Die Wörter, die du gespeichert hast, jeweils mit dem Satz, in dem du es gefunden hast, und seiner Bedeutung dort.',
+  'words.none': 'Noch keine Wörter gespeichert. Tippe in einem Satz auf ein Wort und drücke „Speichern“, um es hier zu sammeln.',
+  'words.remove': '„{word}“ entfernen',
 }
 
 export default de

@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { api } from '../api'
-import type { WordLookup } from '../types'
+import type { SavedWord, WordLookup } from '../types'
 
 /** Where on the screen the tapped word is, to show its explanation next to it. */
 export interface Place {
@@ -24,6 +24,8 @@ export const useLookupStore = defineStore('lookup', () => {
   const found = ref<WordLookup | null>(null)
   const loading = ref(false)
   const error = ref('')
+  const saving = ref(false)
+  const saveError = ref('')
   // Bumped on every tap and on close, so an answer to an earlier tap is not shown.
   let request = 0
 
@@ -32,6 +34,7 @@ export const useLookupStore = defineStore('lookup', () => {
     tapped.value = { word, sentence, at, piece }
     found.value = null
     error.value = ''
+    saveError.value = ''
     loading.value = true
     try {
       const answer = await api<WordLookup>('/lookup', { method: 'POST', json: { word, sentence } })
@@ -43,13 +46,36 @@ export const useLookupStore = defineStore('lookup', () => {
     }
   }
 
+  /** Saves the word shown to the learner's list of words, or takes it off when it is there. */
+  async function toggleSaved() {
+    const word = found.value
+    const at = tapped.value
+    if (!word || !at || saving.value) return
+    saving.value = true
+    saveError.value = ''
+    try {
+      if (word.saved === null) {
+        const saved = await api<SavedWord>('/words', { method: 'POST', json: { word: at.word, sentence: at.sentence } })
+        word.saved = saved.id
+      } else {
+        await api(`/words/${word.saved}`, { method: 'DELETE' })
+        word.saved = null
+      }
+    } catch (e) {
+      saveError.value = (e as Error).message
+    } finally {
+      saving.value = false
+    }
+  }
+
   function close() {
     request++
     tapped.value = null
     found.value = null
     error.value = ''
+    saveError.value = ''
     loading.value = false
   }
 
-  return { tapped, found, loading, error, lookUp, close }
+  return { tapped, found, loading, error, saving, saveError, lookUp, toggleSaved, close }
 })

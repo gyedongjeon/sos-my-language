@@ -9,10 +9,13 @@ from app.llm import LLMError
 
 CORTEX = {
     "lemma": "cortex",
+    "forms": "pl. cortices",
+    "pronunciation": "ˈkɔːteks",
     "phrase": "",
     "part_of_speech": "명사",
     "meaning": "피질, 대뇌 피질",
-    "in_context": "여기서는 뇌의 바깥층을 말합니다.",
+    "translation": "그것은 활성화와 대뇌 피질의 네 엽 모두와 관련됩니다.",
+    "in_translation": "대뇌 피질",
 }
 SENTENCE = "It involves activation and all four lobes of the cortex."
 
@@ -39,7 +42,7 @@ def test_a_tapped_word_is_explained_in_the_feedback_language(client, model):
     client.put("/api/settings", json={"feedback_language": "Korean"})
     response = look_up(client)
     assert response.status_code == 200, response.text
-    assert response.json() == {"word": "cortex", **CORTEX}
+    assert response.json() == {"word": "cortex", "saved": None, **CORTEX}
     system, user = model.calls[0]
     assert "Korean" in system and "English" in system
     # The sentence is sent with the word, so the meaning is the one it has there.
@@ -50,6 +53,38 @@ def test_a_lookup_is_kept_and_not_asked_for_again(client, model):
     first = look_up(client).json()
     assert look_up(client).json() == first
     assert len(model.calls) == 1
+
+
+def test_words_said_to_be_in_the_translation_that_are_not_there_are_left_out(client, model):
+    model.reply = {**CORTEX, "in_translation": "피질층"}
+    assert look_up(client).json()["in_translation"] == ""
+
+
+def test_the_words_in_the_translation_are_given_without_spaces_around_them(client, model):
+    model.reply = {**CORTEX, "in_translation": " 대뇌 피질 "}
+    assert look_up(client).json()["in_translation"] == "대뇌 피질"
+
+
+@pytest.mark.parametrize("field", ["translation", "pronunciation", "forms"])
+def test_an_explanation_kept_before_it_had_a_field_is_asked_for_again(client, model, field):
+    from app.db import get_connection
+
+    old = {key: value for key, value in CORTEX.items() if key != field}
+    client.put("/api/settings", json={"feedback_language": "Korean"})
+    with get_connection() as conn:
+        conn.execute(
+            "INSERT INTO word_lookups (target, language, word, sentence, explained) VALUES ('en', 'Korean', 'cortex', ?, ?)",
+            (SENTENCE, json.dumps(old)),
+        )
+    assert look_up(client).json()[field] == CORTEX[field]
+    assert len(model.calls) == 1
+
+
+def test_a_pronunciation_is_given_without_the_marks_around_it(client, model):
+    model.reply = {**CORTEX, "pronunciation": " /ˈkɔːteks/ "}
+    assert look_up(client).json()["pronunciation"] == "ˈkɔːteks"
+    model.reply = {**CORTEX, "pronunciation": "[ˈfaŋən]"}
+    assert look_up(client, "lobes").json()["pronunciation"] == "ˈfaŋən"
 
 
 def test_a_word_is_asked_for_again_in_another_feedback_language(client, model):

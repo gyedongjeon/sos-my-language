@@ -33,6 +33,7 @@ const ko: Record<keyof typeof en, string> = {
   'nav.patterns': '패턴',
   'nav.videos': '영상',
   'nav.corrections': '교정',
+  'nav.words': '단어장',
   'nav.history': '기록',
   'nav.settings': '설정',
   'nav.practise': '연습할 언어',
@@ -298,6 +299,12 @@ const ko: Record<keyof typeof en, string> = {
   'lookup.word': '“{word}” 뜻 보기',
   'lookup.looking': '찾는 중…',
   'lookup.dialog': '단어 뜻',
+  'lookup.save': '저장',
+  'lookup.saved': '저장됨',
+
+  'words.intro': '저장한 단어를 찾은 문장과 그 문장에서의 뜻과 함께 모아 둡니다.',
+  'words.none': '아직 저장한 단어가 없습니다. 문장 속 단어를 누르고 “저장”을 누르면 여기에 모입니다.',
+  'words.remove': '“{word}” 삭제',
 }
 
 export default ko

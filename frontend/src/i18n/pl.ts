@@ -34,6 +34,7 @@ const pl: Record<keyof typeof en, string> = {
   'nav.patterns': 'Wzorce',
   'nav.videos': 'Filmy',
   'nav.corrections': 'Poprawki',
+  'nav.words': 'Słówka',
   'nav.history': 'Historia',
   'nav.settings': 'Ustawienia',
   'nav.practise': 'Ćwiczony język',
@@ -311,6 +312,12 @@ const pl: Record<keyof typeof en, string> = {
   'lookup.word': 'Sprawdź „{word}”',
   'lookup.looking': 'Sprawdzanie…',
   'lookup.dialog': 'Znaczenie słowa',
+  'lookup.save': 'Zapisz',
+  'lookup.saved': 'Zapisane',
+
+  'words.intro': 'Zapisane słówka, każde ze zdaniem, w którym je znalazłeś, i znaczeniem, jakie ma w nim.',
+  'words.none': 'Nie zapisano jeszcze żadnych słówek. Dotknij słowa w zdaniu i naciśnij „Zapisz”, aby je tu zachować.',
+  'words.remove': 'Usuń „{word}”',
 }
 
 export default pl

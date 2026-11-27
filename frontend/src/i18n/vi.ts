@@ -33,6 +33,7 @@ const vi: Record<keyof typeof en, string> = {
   'nav.patterns': 'Mẫu câu',
   'nav.videos': 'Video',
   'nav.corrections': 'Sửa lỗi',
+  'nav.words': 'Từ vựng',
   'nav.history': 'Lịch sử',
   'nav.settings': 'Cài đặt',
   'nav.practise': 'Ngôn ngữ luyện tập',
@@ -306,6 +307,12 @@ const vi: Record<keyof typeof en, string> = {
   'lookup.word': 'Tra “{word}”',
   'lookup.looking': 'Đang tra…',
   'lookup.dialog': 'Nghĩa của từ',
+  'lookup.save': 'Lưu',
+  'lookup.saved': 'Đã lưu',
+
+  'words.intro': 'Những từ bạn đã lưu, mỗi từ kèm câu bạn gặp nó và nghĩa của nó trong câu đó.',
+  'words.none': 'Chưa có từ nào được lưu. Chạm vào một từ trong câu rồi nhấn “Lưu” để giữ nó ở đây.',
+  'words.remove': 'Xóa “{word}”',
 }
 
 export default vi

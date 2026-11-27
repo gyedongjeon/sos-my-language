@@ -72,6 +72,7 @@ onMounted(async () => {
             <li><RouterLink :class="LINK" to="/patterns" active-class="bg-primary text-primary-content hover:bg-primary">{{ t('nav.patterns') }}</RouterLink></li>
             <li><RouterLink :class="LINK" to="/videos" active-class="bg-primary text-primary-content hover:bg-primary">{{ t('nav.videos') }}</RouterLink></li>
             <li><RouterLink :class="LINK" to="/corrections" active-class="bg-primary text-primary-content hover:bg-primary">{{ t('nav.corrections') }}</RouterLink></li>
+            <li><RouterLink :class="LINK" to="/words" active-class="bg-primary text-primary-content hover:bg-primary">{{ t('nav.words') }}</RouterLink></li>
             <li><RouterLink :class="LINK" to="/history" active-class="bg-primary text-primary-content hover:bg-primary">{{ t('nav.history') }}</RouterLink></li>
             <li><RouterLink :class="LINK" to="/settings" active-class="bg-primary text-primary-content hover:bg-primary">{{ t('nav.settings') }}</RouterLink></li>
           </ul>

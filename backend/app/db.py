@@ -415,6 +415,29 @@ CREATE TABLE IF NOT EXISTS word_lookups (
     PRIMARY KEY (target, language, word, sentence)
 );
 
+-- A word the learner saved to their list, with the sentence they found it in and what it means
+-- there, in the language it was explained in, with the sentence translated into it and the
+-- words of that translation that stand for the word. `headword` is the phrase it belongs to, or else its
+-- dictionary form, as shown. One row for each word in each sentence, as for `word_lookups`: the
+-- same word in another sentence may mean something else.
+CREATE TABLE IF NOT EXISTS saved_words (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    target TEXT NOT NULL,
+    headword TEXT NOT NULL,
+    word TEXT NOT NULL,
+    sentence TEXT NOT NULL,
+    lemma TEXT NOT NULL,
+    forms TEXT NOT NULL,
+    pronunciation TEXT NOT NULL,
+    phrase TEXT NOT NULL,
+    part_of_speech TEXT NOT NULL,
+    meaning TEXT NOT NULL,
+    translation TEXT NOT NULL,
+    in_translation TEXT NOT NULL,
+    saved_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+    UNIQUE (target, word, sentence)
+);
+
 -- A sentence pattern the learner made from a sentence of a video. The sentence is kept as its
 -- example, so the pattern outlives the video.
 CREATE TABLE IF NOT EXISTS own_patterns (

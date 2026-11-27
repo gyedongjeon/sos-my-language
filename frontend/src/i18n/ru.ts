@@ -35,6 +35,7 @@ const ru: Record<keyof typeof en, string> = {
   'nav.patterns': 'Шаблоны',
   'nav.videos': 'Видео',
   'nav.corrections': 'Исправления',
+  'nav.words': 'Слова',
   'nav.history': 'История',
   'nav.settings': 'Настройки',
   'nav.practise': 'Язык для практики',
@@ -308,6 +309,12 @@ const ru: Record<keyof typeof en, string> = {
   'lookup.word': 'Значение «{word}»',
   'lookup.looking': 'Ищем…',
   'lookup.dialog': 'Значение слова',
+  'lookup.save': 'Сохранить',
+  'lookup.saved': 'Сохранено',
+
+  'words.intro': 'Сохранённые слова — каждое с предложением, где вы его нашли, и значением, которое оно там имеет.',
+  'words.none': 'Сохранённых слов пока нет. Нажмите на слово в предложении и затем «Сохранить», чтобы оно появилось здесь.',
+  'words.remove': 'Удалить «{word}»',
 }
 
 export default ru

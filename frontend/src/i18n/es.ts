@@ -34,6 +34,7 @@ const es: Record<keyof typeof en, string> = {
   'nav.patterns': 'Patrones',
   'nav.videos': 'Videos',
   'nav.corrections': 'Correcciones',
+  'nav.words': 'Palabras',
   'nav.history': 'Historial',
   'nav.settings': 'Configuración',
   'nav.practise': 'Idioma que practicas',
@@ -309,6 +310,12 @@ const es: Record<keyof typeof en, string> = {
   'lookup.word': 'Buscar «{word}»',
   'lookup.looking': 'Buscando…',
   'lookup.dialog': 'Significado de una palabra',
+  'lookup.save': 'Guardar',
+  'lookup.saved': 'Guardada',
+
+  'words.intro': 'Las palabras que guardaste, cada una con la frase donde la encontraste y lo que significa allí.',
+  'words.none': 'Aún no hay palabras guardadas. Toca una palabra en una frase y pulsa «Guardar» para tenerla aquí.',
+  'words.remove': 'Quitar «{word}»',
 }
 
 export default es

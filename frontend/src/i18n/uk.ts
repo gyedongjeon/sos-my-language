@@ -35,6 +35,7 @@ const uk: Record<keyof typeof en, string> = {
   'nav.patterns': 'Шаблони',
   'nav.videos': 'Відео',
   'nav.corrections': 'Виправлення',
+  'nav.words': 'Слова',
   'nav.history': 'Історія',
   'nav.settings': 'Налаштування',
   'nav.practise': 'Мова для практики',
@@ -310,6 +311,12 @@ const uk: Record<keyof typeof en, string> = {
   'lookup.word': 'Значення «{word}»',
   'lookup.looking': 'Шукаємо…',
   'lookup.dialog': 'Значення слова',
+  'lookup.save': 'Зберегти',
+  'lookup.saved': 'Збережено',
+
+  'words.intro': 'Збережені слова — кожне з реченням, де ви його знайшли, і значенням, яке воно там має.',
+  'words.none': 'Збережених слів поки немає. Торкніться слова в реченні й натисніть «Зберегти», щоб воно з’явилося тут.',
+  'words.remove': 'Видалити «{word}»',
 }
 
 export default uk

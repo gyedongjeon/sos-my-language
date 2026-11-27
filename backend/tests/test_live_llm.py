@@ -251,8 +251,12 @@ def test_a_tapped_word_is_explained_in_the_chosen_language(client):
     )
     assert response.status_code == 200, response.text
     found = response.json()
-    assert found["lemma"].strip() and not re.search("[가-힣]", found["lemma"])
-    assert re.search("[가-힣]", found["meaning"]) and re.search("[가-힣]", found["in_context"])
+    # The dictionary form alone; its plural is given apart.
+    assert found["lemma"].strip() and not re.search("[가-힣( ]", found["lemma"].strip())
+    assert found["pronunciation"] and not re.search("[가-힣/]", found["pronunciation"])
+    assert re.search("[가-힣]", found["meaning"]) and re.search("[가-힣]", found["translation"])
+    # The words standing for it in the translation are found, to be shown in another color.
+    assert found["in_translation"] and found["in_translation"] in found["translation"]
 
 
 def test_a_word_of_a_verb_in_two_parts_names_the_whole_verb(client, german):

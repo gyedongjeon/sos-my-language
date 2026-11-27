@@ -34,6 +34,7 @@ const bn: Record<keyof typeof en, string> = {
   'nav.patterns': 'প্যাটার্ন',
   'nav.videos': 'ভিডিও',
   'nav.corrections': 'সংশোধন',
+  'nav.words': 'শব্দ',
   'nav.history': 'ইতিহাস',
   'nav.settings': 'সেটিংস',
   'nav.practise': 'অনুশীলনের ভাষা',
@@ -308,6 +309,12 @@ const bn: Record<keyof typeof en, string> = {
   'lookup.word': '“{word}”-এর অর্থ দেখুন',
   'lookup.looking': 'খোঁজা হচ্ছে…',
   'lookup.dialog': 'শব্দের অর্থ',
+  'lookup.save': 'সংরক্ষণ',
+  'lookup.saved': 'সংরক্ষিত',
+
+  'words.intro': 'আপনার সংরক্ষিত শব্দগুলো, প্রতিটি যে বাক্যে পেয়েছেন সেটি এবং সেখানে তার অর্থসহ।',
+  'words.none': 'এখনো কোনো শব্দ সংরক্ষণ করা হয়নি। বাক্যের কোনো শব্দে ট্যাপ করে “সংরক্ষণ” চাপুন, শব্দটি এখানে থাকবে।',
+  'words.remove': '“{word}” সরান',
 }
 
 export default bn

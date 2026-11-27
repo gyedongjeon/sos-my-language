@@ -33,6 +33,7 @@ const it: Record<keyof typeof en, string> = {
   'nav.patterns': 'Strutture',
   'nav.videos': 'Video',
   'nav.corrections': 'Correzioni',
+  'nav.words': 'Parole',
   'nav.history': 'Cronologia',
   'nav.settings': 'Impostazioni',
   'nav.practise': 'Lingua da praticare',
@@ -309,6 +310,12 @@ const it: Record<keyof typeof en, string> = {
   'lookup.word': 'Cerca «{word}»',
   'lookup.looking': 'Ricerca in corso…',
   'lookup.dialog': 'Significato di una parola',
+  'lookup.save': 'Salva',
+  'lookup.saved': 'Salvata',
+
+  'words.intro': 'Le parole che hai salvato, ognuna con la frase in cui l’hai trovata e il significato che ha lì.',
+  'words.none': 'Nessuna parola salvata per ora. Tocca una parola in una frase e premi «Salva» per tenerla qui.',
+  'words.remove': 'Rimuovi «{word}»',
 }
 
 export default it

@@ -267,9 +267,36 @@ export interface WordLookup {
   word: string
   // The dictionary form, in the language being learned.
   lemma: string
+  // Its plural or irregular forms, written short, or "".
+  forms: string
+  // How the phrase or the dictionary form is said, in IPA, without slashes around it; or "".
+  pronunciation: string
   // The phrase the word belongs to in that sentence, or "".
   phrase: string
   part_of_speech: string
   meaning: string
-  in_context: string
+  // The sentence in the learner's language ("" when that is the language learned), and the
+  // words of it that stand for the tapped word.
+  translation: string
+  in_translation: string
+  // The id it is saved as in the learner's list of words, or null.
+  saved: number | null
+}
+
+// A word in the learner's list, with the sentence it was saved from and what it means there.
+export interface SavedWord {
+  id: number
+  // The phrase it belongs to, or else its dictionary form.
+  headword: string
+  word: string
+  sentence: string
+  lemma: string
+  forms: string
+  pronunciation: string
+  phrase: string
+  part_of_speech: string
+  meaning: string
+  translation: string
+  in_translation: string
+  saved_at: string
 }
