@@ -44,14 +44,11 @@ export function markPart(text: string, part: string, whole = false): Marked[] {
   let start = -1
   let length = part.length
   if (whole) {
-    let at = 0
-    for (const piece of splitWords(text)) {
-      if (piece.word && piece.text.toLowerCase() === part.toLowerCase()) {
-        start = at
-        length = piece.text.length
-        break
-      }
-      at += piece.text.length
+    const pieces = splitWords(text)
+    const found = findWord(pieces, part)
+    if (found >= 0) {
+      start = pieces.slice(0, found).reduce((at, piece) => at + piece.text.length, 0)
+      length = pieces[found].text.length
     }
   } else if (part) start = text.indexOf(part)
   if (start < 0) return [{ text, marked: false }]
@@ -60,4 +57,9 @@ export function markPart(text: string, part: string, whole = false): Marked[] {
     { text: text.slice(start, start + length), marked: true },
     { text: text.slice(start + length), marked: false },
   ].filter((piece) => piece.text)
+}
+
+/** Where a word first stands among the pieces of a sentence, whatever its case; -1 if not. */
+export function findWord(pieces: Piece[], word: string): number {
+  return pieces.findIndex((piece) => piece.word && piece.text.toLowerCase() === word.toLowerCase())
 }
