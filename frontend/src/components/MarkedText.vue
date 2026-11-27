@@ -2,13 +2,9 @@
 import { computed } from 'vue'
 import { markPart } from '../words'
 
-// A text with a word of it in the accent color: the word saved in its sentence, or the words of
-// a translation that stand for it.
-const props = withDefaults(defineProps<{ text: string; part: string; whole?: boolean; tag?: string }>(), {
-  whole: false,
-  tag: 'span',
-})
-const pieces = computed(() => markPart(props.text, props.part, props.whole))
+// A translation with the words of it that stand for a tapped word in the accent color.
+const props = withDefaults(defineProps<{ text: string; part: string; tag?: string }>(), { tag: 'span' })
+const pieces = computed(() => markPart(props.text, props.part))
 </script>
 
 <template>

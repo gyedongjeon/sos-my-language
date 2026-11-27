@@ -93,6 +93,8 @@ describe('lookup', () => {
       sentence: SENTENCE,
     })
     expect(store.found?.saved).toBe(7)
+    // A page that lists the saved words knows to show them again.
+    expect(store.savedChanges).toBe(1)
   })
 
   it('takes a saved word off the list', async () => {
@@ -106,6 +108,7 @@ describe('lookup', () => {
     await store.toggleSaved()
     expect(fetch).toHaveBeenLastCalledWith('/api/words/7', expect.objectContaining({ method: 'DELETE' }))
     expect(store.found?.saved).toBeNull()
+    expect(store.savedChanges).toBe(1)
   })
 
   it('shows why a word could not be saved', async () => {
@@ -120,6 +123,7 @@ describe('lookup', () => {
     await store.lookUp('cortex', SENTENCE, AT)
     await store.toggleSaved()
     expect(store.saveError).toBe('Could not look up the word.')
+    expect(store.savedChanges).toBe(0)
     expect(store.found?.saved).toBeNull()
   })
 })

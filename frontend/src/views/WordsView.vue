@@ -1,10 +1,12 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { onMounted, ref, watch } from 'vue'
 import { api } from '../api'
+import LookupText from '../components/LookupText.vue'
 import MarkedText from '../components/MarkedText.vue'
 import MorseSignal from '../components/MorseSignal.vue'
 import { useSpeech } from '../composables/useSpeech'
 import { t } from '../i18n'
+import { useLookupStore } from '../stores/lookup'
 import type { SavedWord } from '../types'
 
 // The words the learner saved, the newest first, each with the sentence it came from.
@@ -23,7 +25,8 @@ async function remove(id: number) {
   }
 }
 
-onMounted(async () => {
+async function load() {
+  error.value = ''
   try {
     words.value = await api<SavedWord[]>('/words')
   } catch (e) {
@@ -31,7 +34,11 @@ onMounted(async () => {
   } finally {
     loading.value = false
   }
-})
+}
+
+onMounted(load)
+// A word of a sentence here saved or taken off from its explanation.
+watch(() => useLookupStore().savedChanges, load)
 </script>
 
 <template>
@@ -66,7 +73,7 @@ onMounted(async () => {
               </button>
             </div>
             <p class="font-medium">{{ w.meaning }}</p>
-            <MarkedText tag="p" class="text-sm italic text-base-content/70" :text="w.sentence" :part="w.word" whole />
+            <p class="text-sm italic text-base-content/70"><LookupText :text="w.sentence" :mark="w.word" /></p>
             <MarkedText v-if="w.translation" tag="p" class="text-sm text-base-content/60" :text="w.translation" :part="w.in_translation" />
           </div>
         </li>

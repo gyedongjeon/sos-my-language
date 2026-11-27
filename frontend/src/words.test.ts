@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { markPart, splitWords } from './words'
+import { findWord, markPart, splitWords } from './words'
 
 const words = (text: string) => splitWords(text).filter((p) => p.word).map((p) => p.text)
 
@@ -36,18 +36,6 @@ describe('splitWords', () => {
 })
 
 describe('markPart', () => {
-  it('marks the tapped word where it stands as a word, not inside another', () => {
-    expect(markPart('A cat and a dog.', 'a', true)).toEqual([
-      { text: 'A', marked: true },
-      { text: ' cat and a dog.', marked: false },
-    ])
-    expect(markPart('Cats, not the cat.', 'cat', true)).toEqual([
-      { text: 'Cats, not the ', marked: false },
-      { text: 'cat', marked: true },
-      { text: '.', marked: false },
-    ])
-  })
-
   it('marks words of a translation as they are written in it', () => {
     expect(markPart('그것은 피질의 네 엽 모두를 포함합니다.', '네 엽')).toEqual([
       { text: '그것은 피질의 ', marked: false },
@@ -57,7 +45,17 @@ describe('markPart', () => {
   })
 
   it('leaves the text unmarked when the part is not in it', () => {
-    expect(markPart('Der Film fängt an.', 'fangen', true)).toEqual([{ text: 'Der Film fängt an.', marked: false }])
     expect(markPart('영화가 시작합니다.', '')).toEqual([{ text: '영화가 시작합니다.', marked: false }])
+  })
+})
+
+describe('findWord', () => {
+  it('finds the word where it stands as a word, whatever its case, not inside another', () => {
+    expect(findWord(splitWords('A cat and a dog.'), 'a')).toBe(0)
+    expect(findWord(splitWords('Cats, not the cat.'), 'cat')).toBe(6)
+  })
+
+  it('does not find a word that is not in the sentence', () => {
+    expect(findWord(splitWords('Der Film fängt an.'), 'fangen')).toBe(-1)
   })
 })

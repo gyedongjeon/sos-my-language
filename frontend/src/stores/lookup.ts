@@ -26,6 +26,8 @@ export const useLookupStore = defineStore('lookup', () => {
   const error = ref('')
   const saving = ref(false)
   const saveError = ref('')
+  // Bumped each time a word is saved or taken off, so a page listing them shows them again.
+  const savedChanges = ref(0)
   // Bumped on every tap and on close, so an answer to an earlier tap is not shown.
   let request = 0
 
@@ -61,6 +63,7 @@ export const useLookupStore = defineStore('lookup', () => {
         await api(`/words/${word.saved}`, { method: 'DELETE' })
         word.saved = null
       }
+      savedChanges.value++
     } catch (e) {
       saveError.value = (e as Error).message
     } finally {
@@ -77,5 +80,5 @@ export const useLookupStore = defineStore('lookup', () => {
     loading.value = false
   }
 
-  return { tapped, found, loading, error, saving, saveError, lookUp, toggleSaved, close }
+  return { tapped, found, loading, error, saving, saveError, savedChanges, lookUp, toggleSaved, close }
 })
