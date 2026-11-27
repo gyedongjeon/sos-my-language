@@ -204,6 +204,7 @@ const ko: Record<keyof typeof en, string> = {
   'video.someHeard': '단어의 {n}%가 들렸습니다.',
   'video.sentences': '문장',
   'video.sentenceN': '문장 {n}',
+  'video.playSentenceN': '{n}번째 문장 재생',
   'video.shadowed': '{n}번 따라 말함 · 최고 {best}%',
   'video.cannotOpen': '이 영상을 열 수 없습니다.',
   'video.unreachable': '유튜브에 연결하지 못했습니다.',

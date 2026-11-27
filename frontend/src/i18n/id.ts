@@ -211,6 +211,7 @@ const id: Record<keyof typeof en, string> = {
   'video.someHeard': '{n}% kata terdengar jelas.',
   'video.sentences': 'Kalimat',
   'video.sentenceN': 'Kalimat {n}',
+  'video.playSentenceN': 'Putar kalimat {n}',
   'video.shadowed': 'Ditirukan {n} kali; terbaik {best}%',
   'video.cannotOpen': 'Video ini tidak bisa dibuka.',
   'video.unreachable': 'Tidak bisa terhubung ke YouTube.',

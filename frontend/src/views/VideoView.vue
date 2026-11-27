@@ -2,9 +2,11 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { api } from '../api'
+import LookupText from '../components/LookupText.vue'
 import MorseSignal from '../components/MorseSignal.vue'
 import { micProblem, useRecorder } from '../composables/useRecorder'
 import { useYouTubePlayer } from '../composables/useYouTubePlayer'
+import { useLookupStore } from '../stores/lookup'
 import { usePatternsStore } from '../stores/patterns'
 import { useShadowStore } from '../stores/shadow'
 import { LEVELS, useVideosStore } from '../stores/videos'
@@ -213,6 +215,14 @@ watch(translationsShown, async () => {
   if (before !== undefined && after !== undefined) window.scrollBy(0, after - before)
 })
 
+// A word tapped while the video plays stops it, so its explanation can be read: the next sentence
+// would scroll the list, which closes the explanation.
+watch(
+  () => useLookupStore().tapped,
+  (now) => {
+    if (now && player.playing.value) player.pause()
+  },
+)
 watch(rate, (now) => player.setRate(now))
 watch(player.ready, (now) => now && player.setRate(rate.value))
 // Repeating starts or stops for the sentence that is playing, too.
@@ -429,16 +439,26 @@ onBeforeUnmount(() => recorder.release())
 
       <ol ref="list" class="mt-2 grid gap-1" :aria-label="t('video.sentences')">
         <li v-for="(line, i) in lines" :key="i" :data-line="i">
-          <button
+          <!-- The whole line plays its sentence when clicked; its words are buttons of their own
+               that explain them, so the line itself is not a button (a button may not hold
+               another). Its time is the button that plays it from the keyboard. -->
+          <div
             class="flex w-full items-baseline gap-3 rounded-lg px-3 py-2 text-left transition hover:bg-base-100"
-            :class="i === current ? 'bg-base-100 ring-2 ring-primary' : ''"
+            :class="[i === current ? 'bg-base-100 ring-2 ring-primary' : '', player.ready.value ? 'cursor-pointer' : '']"
             :aria-current="i === current"
-            :disabled="!player.ready.value"
-            @click="play(i)"
+            @click="player.ready.value && play(i)"
           >
-            <span class="w-12 shrink-0 text-xs text-base-content/50 tabular-nums">{{ clock(line.start) }}</span>
+            <button
+              type="button"
+              class="w-12 shrink-0 text-left text-xs text-base-content/50 tabular-nums hover:text-primary"
+              :disabled="!player.ready.value"
+              :aria-label="t('video.playSentenceN', { n: i + 1 })"
+              @click.stop="play(i)"
+            >
+              {{ clock(line.start) }}
+            </button>
             <span class="flex flex-col">
-              <span v-if="showText">{{ line.text }}</span>
+              <LookupText v-if="showText" :text="line.text" />
               <span v-else class="italic text-base-content/40">{{ t('video.sentenceN', { n: i + 1 }) }}</span>
               <span
                 v-if="videos.showTranslation && videos.translatedFor === video.id && videos.translations[line.id]"
@@ -454,7 +474,7 @@ onBeforeUnmount(() => recorder.release())
             >
               {{ line.best }}%
             </span>
-          </button>
+          </div>
         </li>
       </ol>
     </template>

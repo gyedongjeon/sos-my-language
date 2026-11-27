@@ -209,6 +209,7 @@ const ja: Record<keyof typeof en, string> = {
   'video.someHeard': '単語の{n}%が聞き取れました。',
   'video.sentences': '文',
   'video.sentenceN': '文 {n}',
+  'video.playSentenceN': '{n}番目の文を再生',
   'video.shadowed': '{n}回言いました · 最高 {best}%',
   'video.cannotOpen': 'この動画を開けませんでした。',
   'video.unreachable': 'YouTube に接続できませんでした。',

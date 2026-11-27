@@ -212,6 +212,7 @@ const uk: Record<keyof typeof en, string> = {
   'video.someHeard': 'Розпізнано {n}% слів.',
   'video.sentences': 'Речення',
   'video.sentenceN': 'Речення {n}',
+  'video.playSentenceN': 'Відтворити речення {n}',
   'video.shadowed': 'Повторено разів: {n}; найкращий результат — {best}%',
   'video.cannotOpen': 'Не вдалося відкрити це відео.',
   'video.unreachable': 'Не вдалося з’єднатися з YouTube.',

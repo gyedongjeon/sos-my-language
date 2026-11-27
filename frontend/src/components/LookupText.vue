@@ -2,12 +2,14 @@
 import { computed } from 'vue'
 import { t } from '../i18n'
 import { useLookupStore } from '../stores/lookup'
-import { splitWords } from '../words'
+import { findWord, splitWords } from '../words'
 
 // A sentence in the language being learned whose words the learner can tap to see what they mean.
-const props = defineProps<{ text: string }>()
+// `mark` is a word of it shown in the accent color: the one saved from it.
+const props = defineProps<{ text: string; mark?: string }>()
 const lookup = useLookupStore()
 const pieces = computed(() => splitWords(props.text))
+const marked = computed(() => (props.mark ? findWord(pieces.value, props.mark) : -1))
 // The tapped word, by its place among the pieces, while its explanation is open.
 const tapped = computed(() => (lookup.tapped?.sentence === props.text ? lookup.tapped.piece : null))
 
@@ -28,7 +30,7 @@ function tap(event: MouseEvent, piece: number) {
         type="button"
         data-lookup
         class="cursor-pointer rounded-sm decoration-current/30 decoration-dotted underline-offset-4 hover:bg-primary/15 hover:underline"
-        :class="tapped === i ? 'bg-primary/20' : ''"
+        :class="[tapped === i ? 'bg-primary/20' : '', marked === i ? 'font-semibold text-primary' : '']"
         :aria-label="t('lookup.word', { word: piece.text })"
         :aria-expanded="tapped === i"
         @click="tap($event, i)"

@@ -215,6 +215,7 @@ const de: Record<keyof typeof en, string> = {
   'video.someHeard': '{n} % der Wörter wurden verstanden.',
   'video.sentences': 'Sätze',
   'video.sentenceN': 'Satz {n}',
+  'video.playSentenceN': 'Satz {n} abspielen',
   'video.shadowed': '{n}-mal nachgesprochen; bestes Ergebnis {best} %',
   'video.cannotOpen': 'Dieses Video konnte nicht geöffnet werden.',
   'video.unreachable': 'YouTube ist nicht erreichbar.',

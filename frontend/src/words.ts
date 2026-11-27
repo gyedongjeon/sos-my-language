@@ -37,27 +37,19 @@ export interface Marked {
   marked: boolean
 }
 
-/** The text with `part` marked where it first stands in it: as a whole word when `whole` (the
- * word tapped in its sentence, whatever its case), otherwise as it is written (the words of a
- * translation that stand for it). Unmarked when it is not there. */
-export function markPart(text: string, part: string, whole = false): Marked[] {
-  let start = -1
-  let length = part.length
-  if (whole) {
-    let at = 0
-    for (const piece of splitWords(text)) {
-      if (piece.word && piece.text.toLowerCase() === part.toLowerCase()) {
-        start = at
-        length = piece.text.length
-        break
-      }
-      at += piece.text.length
-    }
-  } else if (part) start = text.indexOf(part)
+/** The text with `part` marked where it first stands in it, as it is written there (the words
+ * of a translation that stand for a tapped word). Unmarked when it is not there. */
+export function markPart(text: string, part: string): Marked[] {
+  const start = part ? text.indexOf(part) : -1
   if (start < 0) return [{ text, marked: false }]
   return [
     { text: text.slice(0, start), marked: false },
-    { text: text.slice(start, start + length), marked: true },
-    { text: text.slice(start + length), marked: false },
+    { text: text.slice(start, start + part.length), marked: true },
+    { text: text.slice(start + part.length), marked: false },
   ].filter((piece) => piece.text)
+}
+
+/** Where a word first stands among the pieces of a sentence, whatever its case; -1 if not. */
+export function findWord(pieces: Piece[], word: string): number {
+  return pieces.findIndex((piece) => piece.word && piece.text.toLowerCase() === word.toLowerCase())
 }

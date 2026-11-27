@@ -211,6 +211,7 @@ const hi: Record<keyof typeof en, string> = {
   'video.someHeard': '{n}% शब्द साफ़ सुनाई दिए।',
   'video.sentences': 'वाक्य',
   'video.sentenceN': 'वाक्य {n}',
+  'video.playSentenceN': 'वाक्य {n} चलाएँ',
   'video.shadowed': '{n} बार सुनकर बोला; सबसे अच्छा {best}%',
   'video.cannotOpen': 'यह वीडियो खोला नहीं जा सका।',
   'video.unreachable': 'YouTube से संपर्क नहीं हो सका।',

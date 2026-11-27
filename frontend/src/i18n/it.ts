@@ -211,6 +211,7 @@ const it: Record<keyof typeof en, string> = {
   'video.someHeard': 'Parole capite: {n}%.',
   'video.sentences': 'Frasi',
   'video.sentenceN': 'Frase {n}',
+  'video.playSentenceN': 'Riproduci la frase {n}',
   'video.shadowed': 'Ripetuta a voce {n} volta; record {best}% | Ripetuta a voce {n} volte; record {best}%',
   'video.cannotOpen': 'Non è stato possibile aprire questo video.',
   'video.unreachable': 'Non è stato possibile raggiungere YouTube.',
