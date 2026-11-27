@@ -209,6 +209,7 @@ const th: Record<keyof typeof en, string> = {
   'video.someHeard': 'ได้ยินชัด {n}% ของคำทั้งหมด',
   'video.sentences': 'ประโยค',
   'video.sentenceN': 'ประโยคที่ {n}',
+  'video.playSentenceN': 'เล่นประโยคที่ {n}',
   'video.shadowed': 'พูดตามแล้ว {n} ครั้ง · ดีที่สุด {best}%',
   'video.cannotOpen': 'เปิดวิดีโอนี้ไม่ได้',
   'video.unreachable': 'เชื่อมต่อ YouTube ไม่ได้',

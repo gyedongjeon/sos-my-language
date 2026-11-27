@@ -211,6 +211,7 @@ const bn: Record<keyof typeof en, string> = {
   'video.someHeard': '{n}% শব্দ স্পষ্ট শোনা গেছে।',
   'video.sentences': 'বাক্য',
   'video.sentenceN': 'বাক্য {n}',
+  'video.playSentenceN': 'বাক্য {n} চালান',
   'video.shadowed': '{n} বার শুনে বলেছেন; সেরা {best}%',
   'video.cannotOpen': 'এই ভিডিওটি খোলা যায়নি।',
   'video.unreachable': 'YouTube-এ সংযোগ করা যায়নি।',

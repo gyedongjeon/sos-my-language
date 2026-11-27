@@ -213,6 +213,7 @@ const pl: Record<keyof typeof en, string> = {
   'video.someHeard': 'Było słychać {n}% słów.',
   'video.sentences': 'Zdania',
   'video.sentenceN': 'Zdanie {n}',
+  'video.playSentenceN': 'Odtwórz zdanie {n}',
   'video.shadowed': 'Liczba powtórzeń: {n}; najlepszy wynik: {best}%',
   'video.cannotOpen': 'Nie udało się otworzyć tego filmu.',
   'video.unreachable': 'Nie udało się połączyć z YouTube.',

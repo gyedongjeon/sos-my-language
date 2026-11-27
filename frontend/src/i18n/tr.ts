@@ -211,6 +211,7 @@ const tr: Record<keyof typeof en, string> = {
   'video.someHeard': 'Kelimelerin %{n} kadarı anlaşıldı.',
   'video.sentences': 'Cümleler',
   'video.sentenceN': 'Cümle {n}',
+  'video.playSentenceN': '{n}. cümleyi oynat',
   'video.shadowed': '{n} kez söyledin; en iyi %{best}',
   'video.cannotOpen': 'Bu video açılamadı.',
   'video.unreachable': 'YouTube’a ulaşılamadı.',

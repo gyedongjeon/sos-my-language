@@ -207,6 +207,7 @@ export default {
   'video.someHeard': '{n}% of the words came through.',
   'video.sentences': 'Sentences',
   'video.sentenceN': 'Sentence {n}',
+  'video.playSentenceN': 'Play sentence {n}',
   'video.shadowed': 'Shadowed {n} time; best {best}% | Shadowed {n} times; best {best}%',
   'video.cannotOpen': 'This video could not be opened.',
   'video.unreachable': 'YouTube could not be reached.',

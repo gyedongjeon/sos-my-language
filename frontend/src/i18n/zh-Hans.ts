@@ -204,6 +204,7 @@ const zhHans: Record<keyof typeof en, string> = {
   'video.someHeard': '{n}% 的词说清楚了。',
   'video.sentences': '句子',
   'video.sentenceN': '第 {n} 句',
+  'video.playSentenceN': '播放第 {n} 句',
   'video.shadowed': '已跟读 {n} 次 · 最高 {best}%',
   'video.cannotOpen': '无法打开这个视频。',
   'video.unreachable': '无法连接到 YouTube。',

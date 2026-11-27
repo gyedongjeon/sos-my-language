@@ -209,6 +209,7 @@ const vi: Record<keyof typeof en, string> = {
   'video.someHeard': 'Nghe rõ được {n}% số từ.',
   'video.sentences': 'Các câu',
   'video.sentenceN': 'Câu {n}',
+  'video.playSentenceN': 'Phát câu {n}',
   'video.shadowed': 'Đã nói theo {n} lần; cao nhất {best}%',
   'video.cannotOpen': 'Không mở được video này.',
   'video.unreachable': 'Không kết nối được với YouTube.',

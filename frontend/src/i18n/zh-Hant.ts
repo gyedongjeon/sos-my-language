@@ -204,6 +204,7 @@ const zhHant: Record<keyof typeof en, string> = {
   'video.someHeard': '聽出了 {n}% 的單字。',
   'video.sentences': '句子',
   'video.sentenceN': '第 {n} 句',
+  'video.playSentenceN': '播放第 {n} 句',
   'video.shadowed': '跟讀 {n} 次,最佳 {best}%',
   'video.cannotOpen': '無法開啟這部影片。',
   'video.unreachable': '無法連上 YouTube。',

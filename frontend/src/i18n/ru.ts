@@ -211,6 +211,7 @@ const ru: Record<keyof typeof en, string> = {
   'video.someHeard': 'Чётко прозвучало {n}% слов.',
   'video.sentences': 'Предложения',
   'video.sentenceN': 'Предложение {n}',
+  'video.playSentenceN': 'Воспроизвести предложение {n}',
   'video.shadowed': 'Повторений вслух: {n}; лучший результат — {best}%',
   'video.cannotOpen': 'Не удалось открыть это видео.',
   'video.unreachable': 'Не удалось связаться с YouTube.',
