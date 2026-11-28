@@ -3,8 +3,10 @@ another at any time, and what was learned in each is kept apart."""
 
 import io
 import json
+import wave
 from collections import Counter
 
+import numpy as np
 import pytest
 
 from app import conversation, patterns, speech, topics, transcribe, videos
@@ -33,7 +35,7 @@ def test_a_language_has_everything_the_app_teaches_with(language):
     assert set(language.openers) == {title for title, *_ in SEED_TOPICS}
     assert all(opener.strip() for opener in language.openers.values())
     assert len({voice.id for voice in language.voices}) == len(language.voices) >= 1
-    assert all(voice.label and voice.size > 0 and voice.engine in ("kokoro", "piper") for voice in language.voices)
+    assert all(voice.label and voice.size > 0 and voice.engine in ("kokoro", "piper", "supertonic") for voice in language.voices)
 
 
 @pytest.mark.parametrize("language", LANGUAGES.values(), ids=lambda language: language.code)
@@ -61,6 +63,7 @@ def test_no_language_is_chosen_on_the_first_start(client):
     assert [(language["code"], language["name"], language["native"]) for language in listed] == [
         ("en", "English", "English"),
         ("de", "German", "Deutsch"),
+        ("ko", "Korean", "한국어"),
     ]
     assert not any(language["chosen"] for language in listed)
     assert all(language["locale"] and language["sample"] for language in listed)
@@ -380,8 +383,8 @@ class FakePiperVoice:
 
 
 def put_voice(voice: str) -> None:
-    speech.TTS_DIR.mkdir(parents=True, exist_ok=True)
     for name in speech.model_files(voice):
+        (speech.TTS_DIR / name).parent.mkdir(parents=True, exist_ok=True)
         (speech.TTS_DIR / name).write_bytes(b"model")
 
 
@@ -455,6 +458,79 @@ def test_the_voice_of_one_language_is_there_while_that_of_another_is_missing(cli
     choose(client, "en")
     voice = next(model for model in client.get("/api/models").json() if model["id"] == "voice")
     assert voice["state"] == "ready"
+
+
+# --- Korean ---------------------------------------------------------------------------------
+
+
+def test_the_korean_partner_is_told_which_speech_level_to_use(client, tutor, korean):
+    talk(client, "어제 바다에 가요.")
+    assert "friendly Korean conversation partner" in tutor.systems[-1]
+    assert "해요체" in tutor.systems[-1] and "반말" in tutor.systems[-1]
+
+
+def test_the_built_in_topics_open_in_korean(client, korean):
+    assert client.get("/api/topics").json()[0]["opener"].startswith("안녕하세요")
+
+
+def test_korean_numbers_are_heard_as_figures(client, tutor, korean):
+    assert practise(client, tutor, "고양이가 셋 있어요.", "고양이가 3 있어요")["matched"] is True
+    assert practise(client, tutor, "고양이가 셋 있어요.", "고양이가 둘 있어요")["matched"] is False
+
+
+class FakeSupertonic:
+    """Stands in for Supertonic: a quarter of a second of silence per request, as a row of samples."""
+
+    calls: list[str] = []
+    sample_rate = 44100
+
+    def __init__(self, model, model_dir, auto_download):
+        assert (model, auto_download) == ("supertonic-3", False)
+        assert (model_dir / "onnx" / "tts.json").exists()
+
+    def get_voice_style(self, voice_name):
+        return voice_name
+
+    def synthesize(self, text, voice_style, lang):
+        FakeSupertonic.calls.append(f"{voice_style} ({lang}): {text}")
+        return np.zeros((1, 11025), dtype=np.float32), np.array([0.25])
+
+
+@pytest.fixture
+def supertonic(monkeypatch):
+    FakeSupertonic.calls = []
+    monkeypatch.setattr(speech, "Supertonic", FakeSupertonic)
+    monkeypatch.setattr(speech, "_download_models", lambda: None)
+    return FakeSupertonic
+
+
+def test_korean_lines_are_read_by_a_supertonic_voice(client, supertonic, korean):
+    put_voice("F1")
+    response = client.post("/api/speech", json={"text": "주말 잘 보냈어요?"})
+    assert response.status_code == 200
+    with wave.open(io.BytesIO(response.content)) as clip:
+        assert (clip.getframerate(), clip.getnframes()) == (44100, 11025)
+    assert supertonic.calls == ["F1 (ko): 주말 잘 보냈어요?"]
+
+
+def test_supertonic_voices_share_one_model_and_each_has_its_own_style(korean):
+    put_voice("F1")
+    assert speech.is_downloaded("F1") and not speech.is_downloaded("M2")
+    assert speech.model_files("M2")[:-1] == speech.model_files("F1")[:-1]
+
+
+def test_a_supertonic_voice_is_downloaded_from_the_archive_of_the_model(korean, monkeypatch):
+    requested = []
+
+    def urlopen(url, context=None):
+        requested.append(url)
+        return io.BytesIO(b"model-bytes")
+
+    monkeypatch.setattr(speech.urllib.request, "urlopen", urlopen)
+    speech._download_models()
+    assert requested == [f"{speech.SUPERTONIC_URL}/{name}" for name in (*speech.SUPERTONIC_FILES, "voice_styles/F1.json")]
+    assert speech.is_downloaded("F1")
+    assert not list(speech.TTS_DIR.rglob("*.part"))
 
 
 def test_every_row_that_is_learned_says_which_language_it_is_in():

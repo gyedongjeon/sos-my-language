@@ -62,6 +62,7 @@ def isolated(monkeypatch, request):
     monkeypatch.setattr(speech.urllib.request, "urlopen", _no_network)
     monkeypatch.setattr(speech, "_kokoro", None)
     monkeypatch.setattr(speech, "_piper", {})
+    monkeypatch.setattr(speech, "_supertonic", None)
     monkeypatch.setattr(transcribe, "_download", _no_network)
     monkeypatch.setattr(topics.trafilatura, "fetch_url", _no_network)
     monkeypatch.setattr(videos, "_transcript", _no_network)
@@ -76,6 +77,12 @@ def isolated(monkeypatch, request):
 def german():
     """German is the language being practised."""
     choose_language("de")
+
+
+@pytest.fixture
+def korean():
+    """Korean is the language being practised."""
+    choose_language("ko")
 
 
 @pytest.fixture

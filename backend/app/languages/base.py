@@ -8,6 +8,8 @@ LEVELS = ["A1", "A2", "B1", "B2", "C1", "C2"]
 
 # Size of the two files every Kokoro voice is in, for showing download progress.
 KOKORO_BYTES = 325_532_387 + 28_214_398
+# Size of the six files of Supertonic 3 that all its voices share.
+SUPERTONIC_BYTES = 3_700_147 + 36_416_150 + 256_534_781 + 101_424_195 + 8_253 + 277_676
 
 
 @dataclass(frozen=True)
@@ -28,7 +30,7 @@ def level(level: str, *rows: tuple[str, str, str, str]) -> list[Pattern]:
 class Voice:
     id: str
     label: str
-    # The program that speaks with it: "kokoro" or "piper".
+    # The program that speaks with it: "kokoro", "piper", or "supertonic".
     engine: str
     # Bytes downloaded the first time it is chosen.
     size: int
@@ -42,6 +44,12 @@ def kokoro(id: str, label: str) -> Voice:
 def piper(id: str, label: str, size: int) -> Voice:
     """A Piper voice, named <language>_<REGION>-<name>-<quality>; each has two files of its own."""
     return Voice(id, label, "piper", size)
+
+
+def supertonic(id: str, label: str, size: int) -> Voice:
+    """A Supertonic voice, named after its style ("F1"): the model is shared by all of them,
+    and each has a style file of its own."""
+    return Voice(id, label, "supertonic", SUPERTONIC_BYTES + size)
 
 
 @dataclass(frozen=True)
