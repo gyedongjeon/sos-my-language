@@ -87,6 +87,10 @@ class Language:
     instruction_example: str
     # How the partner addresses the learner, where the language makes a difference of it: in a
     # conversation, in the first line of the learner's own topic, and in that of a text's topic.
+    # Whether the spaces between words can be taken from what speech recognition writes. Where
+    # they cannot (Korean: "할 수 있어요" is often written "할수있어요"), what is said is compared by
+    # its letters, wherever the spaces fall.
+    spaces_heard: bool = True
     address: str = ""
     opener_address: str = ""
     text_address: str = ""

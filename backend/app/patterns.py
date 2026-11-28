@@ -8,6 +8,7 @@ import sqlite3
 from fastapi import APIRouter, HTTPException, Response
 from pydantic import BaseModel, Field, model_validator
 
+from .conversation import alike
 from .corrections import _words, keep_mistake
 from .db import current_language, get_connection
 from .languages import LEVELS, Pattern
@@ -320,7 +321,7 @@ def write_exercises(pattern_id: str) -> Exercises:
 def check(pattern_id: str, body: Attempt) -> Verdict:
     """Judge what the learner said for one sentence of a round."""
     pattern = _pattern(pattern_id)
-    if _words(body.said) == _words(body.answer):
+    if alike(_words(body.said), _words(body.answer)):
         # The model answer itself, as heard: nothing to judge.
         return Verdict(correct=True, improved=body.answer)
     target, language = current_language(), feedback_language()

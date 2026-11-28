@@ -22,7 +22,7 @@ from youtube_transcript_api import (
     YouTubeTranscriptApiException,
 )
 
-from .corrections import _words
+from .corrections import Heard, _words
 from .db import current_language, get_connection
 from .languages import LEVELS
 from .llm import LLMError, complete, parse_json_reply
@@ -626,15 +626,12 @@ def shadow(line: int, body: Said) -> Shadowed:
         ).fetchone()
         if found is None:
             raise HTTPException(status_code=404, detail="Sentence not found")
-        left = _words(body.text)
+        said = Heard(_words(body.text))
         words, counted, heard_count = [], 0, 0
         for written in found["text"].split():
             # A short form is two words to say; a dash or a lone quotation mark is none.
             spoken = _words(written)
-            heard = all(word in left for word in spoken)
-            if heard:
-                for word in spoken:
-                    left.remove(word)
+            heard = said.take(spoken)
             if spoken:
                 counted += 1
                 heard_count += heard

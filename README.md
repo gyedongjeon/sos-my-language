@@ -158,8 +158,9 @@ checked by a native speaker, so a text may read a little oddly (corrections are 
   correction or of a pattern sentence is therefore checked by its letters, and one that is not
   in your language is sent back once to be translated. This works where your language is written
   differently from the one practised (Korean, Japanese, Chinese, Russian, Ukrainian, Thai, Hindi,
-  Bengali); between two languages in Latin letters, or when Korean is practised and your
-  language is written in Latin letters, it cannot be told and is left to the prompt.
+  Bengali), and when Korean is practised, whose letters give away an explanation written mostly
+  in them (quoting Korean is fine). Between two languages in Latin letters it cannot be told and
+  is left to the prompt.
 
 To add a language for the pages, see [Adding a language for the pages](#adding-a-language-for-the-pages).
 
@@ -229,9 +230,10 @@ heard. The recording is transcribed locally and compared with the sentence word 
 LLM): the page shows the share of words that came through and marks the ones that did not.
 Punctuation and capitals are ignored, and spellings that sound the same are equal: in English
 "I've" equals "I have" and "three" equals "3"; in German "geht's" equals "geht es", "ß" equals
-"ss", and "drei" equals "3"; in Korean "셋" equals "3". Words are told apart by the spaces
-between them, so in Korean a space that speech recognition leaves out or adds ("할수 있어요" for
-"할 수 있어요") counts as a word not heard. Each
+"ss", and "drei" equals "3"; in Korean "셋" equals "3". Speech recognition often leaves out or adds
+the spaces of Korean ("할수 있어요" for "할 수 있어요"), so Korean is compared by its letters,
+wherever the spaces fall; this holds for the corrections and the pattern answers too, and the LLM's
+correction of spaces alone is dropped. Each
 sentence keeps its best score. A sentence not said in full goes to the Corrections page, with
 the words that were not heard and what was heard in their place ("gaps" heard as "guess"). Every
 try, right or not, is also logged with the sentence and what was heard, so the words you are

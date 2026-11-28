@@ -10,8 +10,8 @@ from pydantic import BaseModel, Field
 from .db import current_language
 from .llm import LLMError, complete, parse_json_reply
 
-# A letter that only the language has, by the name the learner's language is saved under. A
-# language written with Latin letters cannot be told from the one practised this way.
+# A letter that only the language has, by the name the learner's language (or the one practised)
+# is saved under. Two languages written with Latin letters cannot be told apart this way.
 _CYRILLIC = re.compile(r"[Ѐ-ӿ]")
 _HAN = re.compile(r"[一-鿿]")
 SCRIPTS = {
@@ -42,9 +42,21 @@ Reply with a single JSON object matching this schema, and nothing else:
 
 
 def looks_written_in(text: str, language: str) -> bool:
-    """Whether a text can be in a language, going by its letters. True when that cannot be told."""
-    script = SCRIPTS.get(language.strip())
-    return script is None or not text.strip() or bool(script.search(text))
+    """Whether a text can be in a language, going by its letters: it has the letters of that
+    language, if it has letters of its own, and is not mostly in those of the language being
+    practised, if that one has. True when that cannot be told."""
+    if not text.strip():
+        return True
+    own = SCRIPTS.get(language.strip())
+    if own is not None and not own.search(text):
+        return False
+    practised = current_language()
+    theirs = SCRIPTS.get(practised.name)
+    if theirs is None or theirs is own or practised.is_named(language):
+        return True
+    # Quoting the language practised is fine; being written in it is not.
+    quoted = len(theirs.findall(text))
+    return quoted <= sum(letter.isalpha() for letter in text) - quoted
 
 
 def in_own_language(text: str, language: str) -> str:

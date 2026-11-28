@@ -69,6 +69,14 @@ def _spoken(text: str) -> list[str]:
     return [word for word in words if word]
 
 
+def alike(words: list[str], other: list[str]) -> bool:
+    """Whether two sentences, as words, are said the same: in a language whose spaces cannot be
+    heard, whatever their spaces."""
+    if current_language().spaces_heard:
+        return words == other
+    return "".join(words) == "".join(other)
+
+
 def tutor_reply(situation: str, messages: list[Message]) -> TutorReply:
     """Return the tutor's next line and a correction for the learner's latest message."""
     target, language = current_language(), feedback_language()
@@ -91,8 +99,9 @@ def tutor_reply(situation: str, messages: list[Message]) -> TutorReply:
     )
     result = parse_json_reply(reply, TutorReply)
     fix = result.correction
-    if fix and _spoken(fix.original) == _spoken(fix.improved):
-        # Only punctuation or capitals changed, which the learner cannot say.
+    if fix and alike(_spoken(fix.original), _spoken(fix.improved)):
+        # Only punctuation, capitals, or (where they cannot be heard) spaces changed, which the
+        # learner cannot say.
         result.correction = None
     elif fix:
         fix.explanation = in_own_language(fix.explanation, language)
