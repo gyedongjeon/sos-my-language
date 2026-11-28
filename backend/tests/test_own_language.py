@@ -64,6 +64,33 @@ def test_a_text_in_the_language_practised_is_written_again(model, german):
     assert "into Korean" in system and "German" in system and user == IN_GERMAN
 
 
+ABOUT_KOREAN_IN_KOREAN = "'할 수 있어요'는 할 수 있는 것을 말할 때 써요."
+ABOUT_KOREAN_IN_ENGLISH = "Say '할 수 있어요' when you talk about what you are able to do."
+
+
+@pytest.mark.parametrize(
+    ("text", "language", "expected"),
+    [
+        # Mostly in the letters of the language practised: not in one written in Latin letters.
+        (ABOUT_KOREAN_IN_KOREAN, "English", False),
+        (ABOUT_KOREAN_IN_KOREAN, "Spanish", False),
+        # Quoting it is fine.
+        (ABOUT_KOREAN_IN_ENGLISH, "English", True),
+        ("「할 수 있어요」は能力を表します。", "Japanese", True),
+        (ABOUT_KOREAN_IN_KOREAN, "Japanese", False),
+        (ABOUT_KOREAN_IN_KOREAN, "Korean", True),
+    ],
+)
+def test_a_text_in_the_letters_of_the_language_practised_is_known_when_it_has_its_own(korean, text, language, expected):
+    assert own_language.looks_written_in(text, language) is expected
+
+
+def test_an_explanation_in_korean_is_written_again_in_english(model, korean):
+    model.replies = [json.dumps({"text": ABOUT_KOREAN_IN_ENGLISH})]
+    assert own_language.in_own_language(ABOUT_KOREAN_IN_KOREAN, "English") == ABOUT_KOREAN_IN_ENGLISH
+    assert "into English" in model.asked[0][0]
+
+
 def test_a_text_that_cannot_be_written_again_is_kept(model, german):
     model.replies = [LLMError("The model is not responding.")]
     assert own_language.in_own_language(IN_GERMAN, "Korean") == IN_GERMAN
