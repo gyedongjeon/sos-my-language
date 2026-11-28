@@ -1,5 +1,6 @@
 """Local text-to-speech; no API key, runs on this machine. A voice is spoken by Kokoro
-(kokoro-onnx) or by Piper (piper-tts): each language being taught lists its own voices."""
+(kokoro-onnx), Piper (piper-tts), or Supertonic (supertonic): each language being taught lists
+its own voices."""
 
 import hashlib
 import io
@@ -14,6 +15,7 @@ import certifi
 import numpy as np
 from kokoro_onnx import Kokoro
 from piper import PiperVoice
+from supertonic import TTS as Supertonic
 
 from .db import current_language, get_connection
 from .downloads import Download
@@ -27,9 +29,23 @@ KOKORO_URL = "https://github.com/thewh1teagle/kokoro-onnx/releases/download/mode
 KOKORO_FILES = ("kokoro-v1.0.onnx", "voices-v1.0.bin")
 # Piper's voices, pinned to a release of the collection; each voice has two files of its own.
 PIPER_URL = "https://huggingface.co/rhasspy/piper-voices/resolve/v1.0.0"
+# Supertonic 3 (~400 MB), pinned to a commit of the archive its makers keep it in since they
+# stopped working on it. Its files keep their folders under TTS_DIR / SUPERTONIC_DIR; every voice
+# needs the six shared ones and the style file named after it.
+SUPERTONIC_URL = "https://huggingface.co/supertone-oss-archive/supertonic-3/resolve/aafc6e32416a594460b32413efc49d7fe4ce6d46"
+SUPERTONIC_DIR = "supertonic-3"
+SUPERTONIC_FILES = (
+    "onnx/duration_predictor.onnx",
+    "onnx/text_encoder.onnx",
+    "onnx/vector_estimator.onnx",
+    "onnx/vocoder.onnx",
+    "onnx/tts.json",
+    "onnx/unicode_indexer.json",
+)
 
 _kokoro: Kokoro | None = None
 _piper: dict[str, PiperVoice] = {}
+_supertonic: Supertonic | None = None
 _lock = threading.Lock()
 
 
@@ -74,18 +90,24 @@ def _accent(voice: str) -> str:
     return "en-gb" if voice.startswith("b") else "en-us"
 
 
-def model_files(voice: str) -> tuple[str, str]:
-    """The two files a voice needs, as they are named on disk."""
-    if _voice(voice).engine == "kokoro":
+def model_files(voice: str) -> tuple[str, ...]:
+    """The files a voice needs, as they are named on disk under TTS_DIR."""
+    engine = _voice(voice).engine
+    if engine == "kokoro":
         return KOKORO_FILES
+    if engine == "supertonic":
+        return tuple(f"{SUPERTONIC_DIR}/{name}" for name in (*SUPERTONIC_FILES, f"voice_styles/{voice}.json"))
     return f"{voice}.onnx", f"{voice}.onnx.json"
 
 
 def _file_url(voice: str, name: str) -> str:
     """Where a file of a voice is downloaded from. Piper's collection keeps "de_DE-thorsten-high"
     under de/de_DE/thorsten/high/."""
-    if _voice(voice).engine == "kokoro":
+    engine = _voice(voice).engine
+    if engine == "kokoro":
         return f"{KOKORO_URL}/{name}"
+    if engine == "supertonic":
+        return f"{SUPERTONIC_URL}/{name.removeprefix(SUPERTONIC_DIR + '/')}"
     locale, speaker, quality = voice.split("-", 2)
     return f"{PIPER_URL}/{locale.split('_')[0]}/{locale}/{speaker}/{quality}/{name}"
 
@@ -112,6 +134,7 @@ def _download_models() -> None:
         if not path.exists():
             # Download to a temporary name so an interrupted download is not reused.
             partial = path.with_name(path.name + ".part")
+            partial.parent.mkdir(parents=True, exist_ok=True)
             # certifi's CA bundle: some Python installs ship without root certificates.
             tls = ssl.create_default_context(cafile=certifi.where())
             with urllib.request.urlopen(_file_url(voice, name), context=tls) as response:
@@ -159,14 +182,32 @@ def _get_piper(voice: str) -> PiperVoice:
     return _piper[voice]
 
 
+def _get_supertonic() -> Supertonic:
+    """Return the loaded Supertonic model, which speaks with every Supertonic voice."""
+    global _supertonic
+    if _supertonic is None:
+        _require_files()
+        _supertonic = Supertonic(model="supertonic-3", model_dir=TTS_DIR / SUPERTONIC_DIR, auto_download=False)
+    return _supertonic
+
+
+def _write(samples: np.ndarray, sample_rate: int, wav: wave.Wave_write) -> None:
+    wav.setnchannels(1)
+    wav.setsampwidth(2)
+    wav.setframerate(sample_rate)
+    wav.writeframes((np.clip(samples, -1.0, 1.0) * 32767).astype(np.int16).tobytes())
+
+
 def _render(voice: str, text: str, wav: wave.Wave_write) -> None:
     """Write the text spoken by a voice into an open WAV file."""
     if _voice(voice).engine == "kokoro":
         samples, sample_rate = _get_kokoro().create(text, voice=voice, speed=1.0, lang=_accent(voice))
-        wav.setnchannels(1)
-        wav.setsampwidth(2)
-        wav.setframerate(sample_rate)
-        wav.writeframes((np.clip(samples, -1.0, 1.0) * 32767).astype(np.int16).tobytes())
+        _write(samples, sample_rate, wav)
+    elif _voice(voice).engine == "supertonic":
+        model = _get_supertonic()
+        # Its style files are named like the voices; the language is the one being practised.
+        samples, _ = model.synthesize(text, voice_style=model.get_voice_style(voice), lang=current_language().code)
+        _write(samples[0], model.sample_rate, wav)
     else:
         _get_piper(voice).synthesize_wav(text, wav)
 
