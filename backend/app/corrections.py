@@ -65,15 +65,25 @@ def _contains(said: list[str], wanted: list[str]) -> bool:
     return any(said[i : i + len(wanted)] == wanted for i in range(len(said) - len(wanted) + 1))
 
 
+class Heard:
+    """What the learner said, from which the words of a sentence are taken as they are found, so
+    that a word said once is not counted for two."""
+
+    def __init__(self, said: list[str]):
+        self.left = list(said)
+
+    def take(self, words: list[str]) -> bool:
+        """Whether all the words were heard; if they were, they are taken."""
+        if not all(word in self.left for word in words):
+            return False
+        for word in words:
+            self.left.remove(word)
+        return True
+
+
 def _missing(said: list[str], wanted: list[str]) -> list[str]:
-    left = list(said)
-    missing = []
-    for word in wanted:
-        if word in left:
-            left.remove(word)
-        else:
-            missing.append(word)
-    return missing
+    heard = Heard(said)
+    return [word for word in wanted if not heard.take([word])]
 
 
 # Where each kind of correction is stored, by the letter its id starts with: the table, and the
