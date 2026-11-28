@@ -7,7 +7,7 @@
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
 Stuck for words? An app for practising **speaking a language you are learning**, running on your
-own machine. Choose the language (**English** or **German** so far), pick a topic, talk it
+own machine. Choose the language (**English**, **German**, or **Korean** so far), pick a topic, talk it
 through out loud with an AI partner that answers by voice, and get what you said fixed as you go.
 
 ![A conversation in SOS My Language: what you said, its correction, and your partner's next line](docs/images/conversation.png)
@@ -50,7 +50,7 @@ Installers for **Apple Silicon Macs** and **64-bit Windows** are attached to eac
    ```
 3. The first launch downloads Python and the Python packages (~450 MB), so it needs an internet
    connection and can take a few minutes. Allow microphone access when asked.
-4. Once you have chosen a language, its speech models (~830 MB for English, ~600 MB for German)
+4. Once you have chosen a language, its speech models (~830 MB for English, ~600 MB for German, ~880 MB for Korean)
    are downloaded once in the background, with their progress shown at the top of the page. You
    can use the app meanwhile. The models of another language are downloaded the first time you
    go over to it.
@@ -122,7 +122,7 @@ UI, and is sent only to the chosen provider.
 ![The home page of SOS My Language, with the list of topics and the language being practised](docs/images/home.png)
 
 ### Languages
-The app teaches English and German. The language being practised decides what your partner
+The app teaches English, German, and Korean. The language being practised decides what your partner
 speaks and corrects, which voice reads the lines, how your speech is recognized, which
 subtitles a video is saved with, and which sentence patterns are listed. Choose it on the first
 start; change it with the selector next to the app's name, or under Settings.
@@ -134,7 +134,9 @@ start; change it with the selector next to the app's name, or under Settings.
   partner's voice is chosen for each language.
 - The pages, the titles and situations of the built-in topics, and what each pattern is for are
   shown in your own language (see [Your language](#your-language)), whichever language is
-  practised. The names of the slots in a pattern ("+ infinitive") stay in English.
+  practised. The names of the slots in a pattern ("+ infinitive") stay in English, and a Korean
+  pattern is written in the usual notation of Korean grammar ("V-(으)ㄹ 수 있어요": V a verb, A an
+  adjective, N a noun).
 
 To add a language, see [Adding a language](#adding-a-language).
 
@@ -156,7 +158,8 @@ checked by a native speaker, so a text may read a little oddly (corrections are 
   correction or of a pattern sentence is therefore checked by its letters, and one that is not
   in your language is sent back once to be translated. This works where your language is written
   differently from the one practised (Korean, Japanese, Chinese, Russian, Ukrainian, Thai, Hindi,
-  Bengali); between two languages in Latin letters it cannot be told and is left to the prompt.
+  Bengali); between two languages in Latin letters, or when Korean is practised and your
+  language is written in Latin letters, it cannot be told and is left to the prompt.
 
 To add a language for the pages, see [Adding a language for the pages](#adding-a-language-for-the-pages).
 
@@ -226,7 +229,9 @@ heard. The recording is transcribed locally and compared with the sentence word 
 LLM): the page shows the share of words that came through and marks the ones that did not.
 Punctuation and capitals are ignored, and spellings that sound the same are equal: in English
 "I've" equals "I have" and "three" equals "3"; in German "geht's" equals "geht es", "ß" equals
-"ss", and "drei" equals "3". Each
+"ss", and "drei" equals "3"; in Korean "셋" equals "3". Words are told apart by the spaces
+between them, so in Korean a space that speech recognition leaves out or adds ("할수 있어요" for
+"할 수 있어요") counts as a word not heard. Each
 sentence keeps its best score. A sentence not said in full goes to the Corrections page, with
 the words that were not heard and what was heard in their place ("gaps" heard as "guess"). Every
 try, right or not, is also logged with the sentence and what was heard, so the words you are
@@ -306,10 +311,13 @@ clearly they were pronounced. Allow microphone access when asked.
 
 ### Text-to-speech
 Your partner's lines are read aloud with a local voice of the language you practise: English by
-[Kokoro](https://github.com/thewh1teagle/kokoro-onnx) (~350 MB for all its voices), and German,
+[Kokoro](https://github.com/thewh1teagle/kokoro-onnx) (~350 MB for all its voices); German,
 for which Kokoro has no voice, by [Piper](https://github.com/OHF-Voice/piper1-gpl) with a voice
 from [Piper's voices](https://huggingface.co/rhasspy/piper-voices) (`de_DE-thorsten-high`,
-~114 MB). The files are downloaded in the background the first time the language is practised,
+~114 MB); and Korean, for which neither has one, by
+[Supertonic 3](https://huggingface.co/supertone-oss-archive/supertonic-3) (~400 MB for all its
+voices). Supertonic's makers stopped working on it in 2026 and keep it in an archive, from which
+the app downloads a fixed version. The files are downloaded in the background the first time the language is practised,
 and rendered clips are cached in `backend/data/tts/cache/`.
 
 **Choosing the voice.** Under Settings, "Partner's voice" offers the voices of the language you
@@ -323,9 +331,11 @@ practise, and each language keeps its own choice. "Hear it" plays a sample.
   high quality), Kerstin and Ramona (female), Eva (female, in the lowest quality), and Karlsson
   and Pavoque (male). A voice is downloaded the first time it is chosen (21 to 114 MB), with its
   progress shown under the navigation bar.
+- Korean: Supertonic's ten voices, F1 to F5 (female; F1 is the default) and M1 to M5 (male).
+  They share one model, so choosing another downloads only its style file (~290 KB).
 
 Downloaded voices stay in `tts/`. Without a choice, the `TTS_VOICE` environment variable names
-the voice, which may be any voice of the same kind (Kokoro for English, Piper for German); a
+the voice, which may be any voice of the same kind (Kokoro for English, Piper for German, Supertonic for Korean); a
 choice made under Settings comes first. While a download is running, or if the backend cannot
 produce audio, the browser's built-in voice for the language is used instead.
 
@@ -375,7 +385,7 @@ cd frontend && npm test         # unit tests (Vitest)
 cd desktop && npm test          # unit tests (Vitest)
 ```
 
-The backend tests never call a real LLM, Whisper, Kokoro, or Piper, and never reach the network. The
+The backend tests never call a real LLM, Whisper, Kokoro, Piper, or Supertonic, and never reach the network. The
 exception is a dozen "live" tests that send real requests to a model and check the shape of its
 replies; they run only when asked for, with a key in `backend/.env`:
 
@@ -389,12 +399,12 @@ desktop type check (`.github/workflows/ci.yml`).
 
 ## Adding a language
 Everything that differs from one language to the next is in one place,
-`backend/app/languages/`: a package for each language (`english/`, `german/`) that defines a
+`backend/app/languages/`: a package for each language (`english/`, `german/`, `korean/`) that defines a
 `Language` (see `base.py` for what each field means).
 
 1. Copy one of the packages and fill it in: the language's code and names, its Whisper model and
    subtitle codes, its abbreviations, how short forms and number words are heard
-   (`spell_out`, `numbers`), its voices (Kokoro or Piper), the opening line of each built-in topic
+   (`spell_out`, `numbers`), its voices (Kokoro, Piper, or Supertonic), the opening line of each built-in topic
    (`openers.py`), its sentence patterns by level (`patterns.py`), and the examples its prompts use.
 2. List it in `backend/app/languages/__init__.py`.
 3. Run `cd backend && uv run pytest`: `tests/test_languages.py` checks every listed language for
@@ -436,7 +446,8 @@ Built with FastAPI and SQLite (backend), Vue 3, TypeScript, Vite, Pinia, and Tai
 
 ## License
 [MIT](LICENSE). Piper (GPL-3.0) and its voices are not part of this repository or the installer:
-they are downloaded on the first launch, like the other Python packages. Third-party work shipped in the built app — the libraries and the heading font, Bricolage
+they are downloaded on the first launch, like the other Python packages. Nor is the Supertonic
+model (OpenRAIL-M), which is downloaded the first time Korean is practised. Third-party work shipped in the built app — the libraries and the heading font, Bricolage
 Grotesque (SIL Open Font License 1.1) — is credited in
 [frontend/public/THIRD_PARTY_NOTICES.txt](frontend/public/THIRD_PARTY_NOTICES.txt), which is also served by the app at
 `/THIRD_PARTY_NOTICES.txt`.
