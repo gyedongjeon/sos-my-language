@@ -52,6 +52,7 @@ KOREAN = Language(
     pattern_slots='"V-", "A-", "N", "-아/어요", "-(으)ㄹ", or "…"',
     pattern_example='from "더 일찍 출발할 걸 그랬어요" with "출발할 걸 그랬어요" marked: "V-(으)ㄹ 걸 그랬어요"',
     instruction_example="더 일찍 출발하지 않은 것을 후회한다고 말해 보세요.",
+    spaces_heard=False,
     address=(
         "Use the polite 해요체 by default. Use 반말 only where the situation is between close friends, "
         "family, or classmates of the same age, and the formal 합쇼체 only where staff or officials would; keep to it."

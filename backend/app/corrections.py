@@ -5,7 +5,7 @@ from typing import Literal
 from fastapi import APIRouter, HTTPException, Response
 from pydantic import BaseModel, Field
 
-from .conversation import _spoken
+from .conversation import _spoken, alike
 from .db import current_language, get_connection
 
 router = APIRouter(prefix="/api")
@@ -62,18 +62,32 @@ def _words(text: str) -> list[str]:
 
 def _contains(said: list[str], wanted: list[str]) -> bool:
     """Whether the wanted words were said one after another, in order."""
+    if not current_language().spaces_heard:
+        return "".join(wanted) in "".join(said)
     return any(said[i : i + len(wanted)] == wanted for i in range(len(said) - len(wanted) + 1))
 
 
 class Heard:
     """What the learner said, from which the words of a sentence are taken as they are found, so
-    that a word said once is not counted for two."""
+    that a word said once is not counted for two. Where spaces cannot be heard, a word is looked
+    for among the letters said, wherever the spaces fell."""
 
     def __init__(self, said: list[str]):
         self.left = list(said)
+        # The letters said, as pieces: a word taken from the middle of one leaves the letters on
+        # either side apart, so that they do not run together into a word that was not said.
+        self.pieces = None if current_language().spaces_heard else ["".join(said)]
 
     def take(self, words: list[str]) -> bool:
         """Whether all the words were heard; if they were, they are taken."""
+        if self.pieces is not None:
+            wanted = "".join(words)
+            for i, piece in enumerate(self.pieces):
+                if wanted in piece:
+                    before, _, after = piece.partition(wanted)
+                    self.pieces[i : i + 1] = [before, after]
+                    return True
+            return False
         if not all(word in self.left for word in words):
             return False
         for word in words:

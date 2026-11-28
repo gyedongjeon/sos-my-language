@@ -478,6 +478,43 @@ def test_korean_numbers_are_heard_as_figures(client, tutor, korean):
     assert practise(client, tutor, "고양이가 셋 있어요.", "고양이가 둘 있어요")["matched"] is False
 
 
+def test_korean_is_said_right_whatever_spaces_speech_recognition_puts(client, tutor, korean):
+    assert practise(client, tutor, "할 수 있어요.", "할수있어요")["matched"] is True
+    assert practise(client, tutor, "공부할수 있어요.", "공부 할 수있어요")["matched"] is True
+    result = practise(client, tutor, "저는 학생이에요.", "저는학생")
+    assert (result["matched"], result["missing"]) == (False, ["학생이에요"])
+    # The letters left on either side of a word that was heard do not make another.
+    assert practise(client, tutor, "다 가나", "가다나")["missing"] == ["가나"]
+
+
+def test_english_words_still_need_their_spaces(client, tutor):
+    assert practise(client, tutor, "I can do it.", "I cando it")["matched"] is False
+
+
+def test_a_correction_of_spaces_alone_is_dropped_in_korean(client, tutor, korean):
+    tutor.correction = {"original": "할수 있어요", "improved": "할 수 있어요.", "explanation": "띄어쓰기."}
+    talk(client, "할수 있어요.")
+    assert client.get("/api/corrections").json() == []
+
+
+def test_a_pattern_answer_said_with_other_spaces_is_right_without_asking_the_model(client, korean):
+    pattern = LANGUAGES["ko"].patterns[2].id
+    said = {"prompt": "Say you can swim.", "answer": "수영할 수 있어요.", "said": "수영 할수있어요"}
+    response = client.post(f"/api/patterns/{pattern}/check", json=said)
+    assert response.status_code == 200 and response.json()["correct"] is True
+
+
+def test_a_korean_video_sentence_is_shadowed_whatever_the_spaces(client, korean, monkeypatch):
+    monkeypatch.setattr(videos, "_transcript", lambda video_id: ([Snippet(0.0, 3.0, "지금 몇 시예요? 저는 학생이에요.")], "ko", False))
+    monkeypatch.setattr(videos, "_about", lambda video_id: ("A talk", "A channel"))
+    monkeypatch.setattr(videos, "_estimate", lambda lines: "A1")
+    first, second = client.post("/api/videos", json={"url": URL}).json()["lines"]
+    shadowed = client.post(f"/api/video-lines/{first['id']}/attempts", json={"text": "지금 몇시예요"}).json()
+    assert shadowed["accuracy"] == 100
+    shadowed = client.post(f"/api/video-lines/{second['id']}/attempts", json={"text": "저는학생"}).json()
+    assert [word["heard"] for word in shadowed["words"]] == [True, False]
+
+
 class FakeSupertonic:
     """Stands in for Supertonic: a quarter of a second of silence per request, as a row of samples."""
 
